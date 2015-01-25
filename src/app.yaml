@@ -1,0 +1,15 @@
+application: gcp-ug
+version: 20141211
+runtime: go
+api_version: go1
+
+handlers:
+- url: /
+  static_files: index.html
+  upload: index.html
+- url: /css
+  static_dir: css
+- url: /images
+  static_dir: images
+- url: /.*
+  script: _go_app
