@@ -38,7 +38,7 @@ export _OLD_GOROOT="$GOROOT"
 export _OLD_PS1="$PS1"
 export GOENVNAME="gcpug"
 export PS1="(go:gcpug) $_OLD_PS1"
-export GOPATH=$HOME/go:$HOME/gcpug
+export GOPATH=$HOME/go:$HOME/workspace/gcpug
 export GOBIN=$HOME/workspace/gcpug/bin
 export PATH="$GAEGO":"$GOPATH/bin":$PATH
 
