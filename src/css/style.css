@@ -1,180 +1,53 @@
-@charset "UTF-8";
-html, body, div, span, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, abbr, address, cite, code, del, dfn, em, img, ins, kbd, q, samp, small, strong, sub, sup, var, b, i, dl, dt, dd, ol, ul, li, fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td, article, aside, canvas, details, figcaption, figure, footer, header, hgroup, menu, nav, section, summary, time, mark, audio, video {
-	margin: 0;
-	padding: 0;
-	border: 0;
-	outline: 0;
-	font-size: 100%;
-	vertical-align: baseline;
-	background: transparent;
-}
-body {
-	line-height: 1;
-}
-article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, section {
-	display: block;
-}
-nav ul {
-	list-style: none;
-}
-blockquote, q {
-	quotes: none;
-}
-blockquote:before, blockquote:after, q:before, q:after {
-	content: '';
-	content: none;
-}
-a {
-	margin: 0;
-	padding: 0;
-	font-size: 100%;
-	vertical-align: baseline;
-	background: transparent;
-}
-/* change colours to suit your needs */
-ins {
-	background-color: #ff9;
-	color: #000;
-	text-decoration: none;
-}
-/* change colours to suit your needs */
-mark {
-	background-color: #ff9;
-	color: #000;
-	font-style: italic;
-	font-weight: bold;
-}
-del {
-	text-decoration: line-through;
-}
-abbr[title], dfn[title] {
-	border-bottom: 1px dotted;
-	cursor: help;
-}
-table {
-	border-collapse: collapse;
-	border-spacing: 0;
-}
-/* change border colour to suit your needs */
-hr {
-	display: block;
-	height: 1px;
-	border: 0;
-	border-top: 1px solid #cccccc;
-	margin: 1em 0;
-	padding: 0;
-}
-input, select {
-	vertical-align: middle;
-}
-/* CSS Document */
+/* Custom Stylesheet */
+/**
+ * Use this file to override Materialize files so you can update
+ * the core Materialize files in the future
+ *
+ * Made By MaterializeCSS.com
+ */
 
-body {
-	background-color: #f7f7f7;
+.icon-block {
+  padding: 0 15px;
 }
-.wrapper {
-	margin: 0 auto;
-	width: 960px;
+
+ul.side-nav.fixed li.logo {
+    padding: 15px !important;
+    border-bottom: 1px solid #ddd;
+    line-height: normal;
 }
-#header {
-	background-color: #f7f7f7;
+ul.side-nav.fixed li.logo:hover {
+    background: none;
 }
-#header h1 {
-	margin: 0;
-	padding: 0;
+
+header, main, footer {
+    padding-left: 240px; }
+
+.parallax-demo header, .parallax-demo main, .parallax-demo footer {
+    padding-left: 0; }
+
+footer.example {
+    padding-left: 0;
 }
-#header h1 img {
-	margin: 0;
-	padding: 0;
-	border: none;
+
+.aiueo {
 }
-#nav {
-	margin: 0;
-	padding: 0;
-	background-color: #000000;
+.aiueo2 {
+    min-height: 160px;
 }
-#nav ul {
-	margin: 0;
-	padding: 0;
-	line-height: 45px;
-	color: #FFFFFF;
-	list-style: none;
-	font-size: 10px;
+.aiueo2 p {
+    overflow: hidden;
+    height: 3em;
 }
-#nav a {
-	color: #FFFFFF;
-	text-decoration: none;
+
+
+@media only screen and (max-width : 992px) {
+    header, main, footer {
+        padding-left: 0;
+    }
 }
-#container {
-	margin: 0;
-	padding: 0;
-	height: 750px;
-	background-image: url(../images/background.jpg);
-	background-size: cover;
-}
-#container p {
-	padding: 3em 0 1.8em 0;
-}
-#container h1 {
-	margin-bottom: 0.7em;
-}
-#container h2 {
-	font-weight: normal;
-	line-height: 1.5em;
-	margin-bottom: 2em;
-}
-h1 {
-	font-size: 36px;
-	text-shadow: 2px 2px 5px rgba(255, 255, 255, 1);
-}
-h2 {
-	font-size: 24px;
-	text-shadow: 2px 2px 5px rgba(255, 255, 255, 1);
-}
-h3, .h3 {
-	font-size: 18px;
-}
-h4, .h4 {
-	font-size: 16px;
-}
-.btn {
-	text-decoration: none;
-	display: inline-block;
-	padding: 6px 12px;
-	margin-bottom: 0;
-	font-size: 14px;
-	font-weight: 400;
-	line-height: 1.42857143;
-	text-align: center;
-	white-space: nowrap;
-	vertical-align: middle;
-	-ms-touch-action: manipulation;
-	touch-action: manipulation;
-	cursor: pointer;
-	-webkit-user-select: none;
-	-moz-user-select: none;
-	-ms-user-select: none;
-	user-select: none;
-	background-image: none;
-	border: 1px solid transparent;
-	border-radius: 4px;
-	color: #fff;
-	background-color: #337ab7;
-	border-color: #2e6da4;
-	padding: 10px 16px;
-	font-size: 18px;
-	line-height: 1.33;
-	border-radius: 6px;
-	-webkit-box-shadow: 5px 5px 9px 0px rgba(255, 255, 255, 0.75);
-	-moz-box-shadow: 5px 5px 9px 0px rgba(255, 255, 255, 0.75);
-	box-shadow: 5px 5px 9px 0px rgba(255, 255, 255, 0.75);
-}
-#footer {
-	color: #fff;
-	line-height: 3em;
-	background-color: #000000;
-}
-#footer p {
-	text-align: center;
-	font-size: 12px;
+
+@media only screen and (min-width : 992px) {
+    .container {
+        width: 100%;
+    }
 }
