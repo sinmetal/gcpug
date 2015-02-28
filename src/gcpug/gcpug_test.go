@@ -40,7 +40,7 @@ func TestDoGetOrganization(t *testing.T) {
 	ts := httptest.NewServer(m)
 	defer ts.Close()
 
-	res, err := http.Get(ts.URL + "/organization/sampleid")
+	res, err := http.Get(ts.URL + "/api/1/organization/sampleid")
 	if err != nil {
 		t.Error("unexpected")
 	}
@@ -72,7 +72,7 @@ func TestDoGetOrganizationList(t *testing.T) {
 	ts := httptest.NewServer(m)
 	defer ts.Close()
 
-	res, err := http.Get(ts.URL + "/organization")
+	res, err := http.Get(ts.URL + "/api/1/organization")
 	if err != nil {
 		t.Error("unexpected")
 	}

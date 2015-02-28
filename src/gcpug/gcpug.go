@@ -3,17 +3,25 @@ package gcpug
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/zenazn/goji"
-	"github.com/zenazn/goji/web"
 	"net/http"
 	"time"
+
+	"github.com/zenazn/goji"
+	"github.com/zenazn/goji/web"
 )
 
+// Organization
+//
+// 支部
 type Organization struct {
-	Id        string    `json:id`
-	Name      string    `json:name`
-	Url       string    `json:url`
-	CreatedAt time.Time `json createdAt`
+	Id        string    `datastore:"-" goon:"id" json:id` // 明示的に入れるID
+	Name      string    `json:name datastore:",noindex"`  // 支部名
+	Url       string    `json:url datastore:",noindex"`   // 支部WebSiteURL
+	CreatedAt time.Time `json createdAt`                  // 作成日時
+	UpdatedAt time.Time `json updatedAt`                  // 更新日時
+}
+
+type OrganizationApi struct {
 }
 
 func init() {
@@ -22,20 +30,23 @@ func init() {
 }
 
 func route(m *web.Mux) {
+	api := OrganizationApi{}
+
 	m.Get("/hello/:name", hello)
-	m.Get("/organization/:id", doGetOrganization)
-	m.Get("/organization", doGetOrganizationList)
+	m.Get("/api/1/organization/:id", api.get)
+	m.Get("/api/1/organization", api.list)
 }
 
 func hello(c web.C, w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Hello, %s!", c.URLParams["name"])
 }
 
-func doGetOrganization(c web.C, w http.ResponseWriter, r *http.Request) {
+func (a *OrganizationApi) get (c web.C, w http.ResponseWriter, r *http.Request) {
 	o := Organization{
 		"sampleid",
 		"Sinmetal支部",
 		"http://sinmetal.org",
+		time.Now(),
 		time.Now(),
 	}
 
@@ -44,7 +55,7 @@ func doGetOrganization(c web.C, w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(o)
 }
 
-func doGetOrganizationList(c web.C, w http.ResponseWriter, r *http.Request) {
+func (a *OrganizationApi) list(c web.C, w http.ResponseWriter, r *http.Request) {
 
 	o := []Organization{
 		Organization{
@@ -52,11 +63,13 @@ func doGetOrganizationList(c web.C, w http.ResponseWriter, r *http.Request) {
 			"Sinmetal支部1",
 			"http://sinmetal1.org",
 			time.Now(),
+			time.Now(),
 		},
 		Organization{
 			"sampleid2",
 			"Sinmetal支部2",
 			"http://sinmetal2.org",
+			time.Now(),
 			time.Now(),
 		},
 	}
