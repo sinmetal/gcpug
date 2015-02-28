@@ -8,6 +8,10 @@ import (
 	"net/http/httptest"
 	"testing"
 	"time"
+
+	"github.com/mjibson/goon"
+
+	"github.com/sinmetal/gaego_unittest_util/aetestutil"
 )
 
 func TestHello(t *testing.T) {
@@ -35,34 +39,58 @@ func TestHello(t *testing.T) {
 }
 
 func TestDoGetOrganization(t *testing.T) {
+	inst, c, err := aetestutil.SpinUp()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer aetestutil.SpinDown()
+
+	g := goon.FromContext(c)
+
+	o := &Organization{
+		"sampleId",
+		"Sinmetal支部",
+		"http://sinmetal.org",
+		time.Now(),
+		time.Now(),
+	}
+	_, err = g.Put(o)
+	if err != nil {
+		t.Fatal("test organization put error : %s", err.Error())
+	}
+
 	m := web.New()
 	route(m)
 	ts := httptest.NewServer(m)
 	defer ts.Close()
 
-	res, err := http.Get(ts.URL + "/api/1/organization/sampleid")
+	r, err := inst.NewRequest("GET", ts.URL + "/api/1/organization/" + o.Id, nil)
 	if err != nil {
-		t.Error("unexpected")
+		t.Error(err.Error())
 	}
-	if res.StatusCode != http.StatusOK {
-		t.Error("invalid status code")
+	w := httptest.NewRecorder()
+	http.DefaultServeMux.ServeHTTP(w, r)
+	if w.Code != http.StatusOK {
+		t.Error("unexpected status code : %d, %s", w.Code, w.Body)
 	}
 
-	defer res.Body.Close()
-	var o Organization
-	json.NewDecoder(res.Body).Decode(&o)
-	if o.Id != "sampleid" {
-		t.Error("invalid organization.id : ", o.Id)
+	var ro Organization
+	json.NewDecoder(w.Body).Decode(&ro)
+	if ro.Id != o.Id {
+		t.Error("invalid organization.id : ", ro.Id)
 	}
-	if o.Name != "Sinmetal支部" {
-		t.Error("invalid organization.name : ", o.Name)
+	if ro.Name != o.Name {
+		t.Error("invalid organization.name : ", ro.Name)
 	}
-	if o.Url != "http://sinmetal.org" {
+	if ro.Url != o.Url {
 		t.Error("invalid organization.url : ", o.Url)
 	}
 	zeroTime := time.Time{}
-	if o.CreatedAt == zeroTime {
-		t.Error("invalid organization.createdAt : ", o.CreatedAt)
+	if ro.CreatedAt == zeroTime {
+		t.Error("invalid organization.createdAt : ", ro.CreatedAt)
+	}
+	if ro.UpdatedAt == zeroTime {
+		t.Error("invalid organization.UpdatedAt : ", ro.UpdatedAt)
 	}
 }
 

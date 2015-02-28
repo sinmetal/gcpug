@@ -8,6 +8,10 @@ import (
 
 	"github.com/zenazn/goji"
 	"github.com/zenazn/goji/web"
+
+	"appengine"
+	"appengine/datastore"
+	"github.com/mjibson/goon"
 )
 
 // Organization
@@ -24,6 +28,11 @@ type Organization struct {
 type OrganizationApi struct {
 }
 
+type ErrorResponse struct {
+	Status int
+	Messages []string
+}
+
 func init() {
 	route(goji.DefaultMux)
 	goji.Serve()
@@ -33,7 +42,7 @@ func route(m *web.Mux) {
 	api := OrganizationApi{}
 
 	m.Get("/hello/:name", hello)
-	m.Get("/api/1/organization/:id", api.get)
+	m.Get("/api/1/organization/:id", api.Get)
 	m.Get("/api/1/organization", api.list)
 }
 
@@ -41,13 +50,36 @@ func hello(c web.C, w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Hello, %s!", c.URLParams["name"])
 }
 
-func (a *OrganizationApi) get (c web.C, w http.ResponseWriter, r *http.Request) {
-	o := Organization{
-		"sampleid",
-		"Sinmetal支部",
-		"http://sinmetal.org",
-		time.Now(),
-		time.Now(),
+func (a *OrganizationApi) Get (c web.C, w http.ResponseWriter, r *http.Request) {
+	ac := appengine.NewContext(r)
+
+	id := c.URLParams["id"]
+	if id == "" {
+		er := ErrorResponse{
+			http.StatusBadRequest,
+			[]string{"id is required"},
+		}
+		er.Write(w)
+		return
+	}
+
+	o := &Organization{Id: id}
+	err := o.Get(ac)
+	if err == datastore.ErrNoSuchEntity {
+		er := ErrorResponse{
+			http.StatusNotFound,
+			[]string{fmt.Sprintf("%s is not found.", id)},
+		}
+		er.Write(w)
+		return
+	} else if err != nil {
+		er := ErrorResponse{
+			http.StatusInternalServerError,
+			[]string{err.Error()},
+		}
+		ac.Errorf(fmt.Sprintf("datastore get error : ", err.Error() ))
+		er.Write(w)
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
@@ -77,4 +109,15 @@ func (a *OrganizationApi) list(c web.C, w http.ResponseWriter, r *http.Request) 
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(o)
+}
+
+func (o *Organization) Get(c appengine.Context) error {
+	g := goon.FromContext(c)
+	return g.Get(o)
+}
+
+func (er *ErrorResponse) Write(w http.ResponseWriter) {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(er.Status)
+	json.NewEncoder(w).Encode(er.Messages)
 }
