@@ -29,7 +29,7 @@ type OrganizationApi struct {
 }
 
 type ErrorResponse struct {
-	Status int
+	Status   int
 	Messages []string
 }
 
@@ -50,7 +50,7 @@ func hello(c web.C, w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Hello, %s!", c.URLParams["name"])
 }
 
-func (a *OrganizationApi) Get (c web.C, w http.ResponseWriter, r *http.Request) {
+func (a *OrganizationApi) Get(c web.C, w http.ResponseWriter, r *http.Request) {
 	ac := appengine.NewContext(r)
 
 	id := c.URLParams["id"]
@@ -77,7 +77,7 @@ func (a *OrganizationApi) Get (c web.C, w http.ResponseWriter, r *http.Request) 
 			http.StatusInternalServerError,
 			[]string{err.Error()},
 		}
-		ac.Errorf(fmt.Sprintf("datastore get error : ", err.Error() ))
+		ac.Errorf(fmt.Sprintf("datastore get error : ", err.Error()))
 		er.Write(w)
 		return
 	}

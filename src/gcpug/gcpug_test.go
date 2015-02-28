@@ -64,7 +64,7 @@ func TestDoGetOrganization(t *testing.T) {
 	ts := httptest.NewServer(m)
 	defer ts.Close()
 
-	r, err := inst.NewRequest("GET", ts.URL + "/api/1/organization/" + o.Id, nil)
+	r, err := inst.NewRequest("GET", ts.URL+"/api/1/organization/"+o.Id, nil)
 	if err != nil {
 		t.Error(err.Error())
 	}
