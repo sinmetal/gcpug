@@ -1,6 +1,7 @@
 package gcpug
 
 import (
+	"bytes"
 	"encoding/json"
 	"github.com/zenazn/goji/web"
 	"io/ioutil"
@@ -64,7 +65,7 @@ func TestDoGetOrganization(t *testing.T) {
 	ts := httptest.NewServer(m)
 	defer ts.Close()
 
-	r, err := inst.NewRequest("GET", ts.URL + "/api/1/organization/" + o.Id, nil)
+	r, err := inst.NewRequest("GET", ts.URL+"/api/1/organization/"+o.Id, nil)
 	if err != nil {
 		t.Error(err.Error())
 	}
@@ -142,5 +143,67 @@ func TestDoGetOrganizationList(t *testing.T) {
 
 	if o[1].CreatedAt == zeroTime {
 		t.Error("invalid organization.createdAt : ", o[1].CreatedAt)
+	}
+}
+
+func TestPostOrganization(t *testing.T) {
+	inst, c, err := aetestutil.SpinUp()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer aetestutil.SpinDown()
+
+	g := goon.FromContext(c)
+
+	o := &Organization{
+		Id:   "sampleId",
+		Name: "Sinmetal支部",
+		Url:  "http://sinmetal.org",
+	}
+	b, err := json.Marshal(o)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	m := web.New()
+	route(m)
+	ts := httptest.NewServer(m)
+	defer ts.Close()
+
+	r, err := inst.NewRequest("POST", ts.URL+"/api/1/organization", bytes.NewReader(b))
+	if err != nil {
+		t.Error(err.Error())
+	}
+	w := httptest.NewRecorder()
+	http.DefaultServeMux.ServeHTTP(w, r)
+	if w.Code != http.StatusCreated {
+		t.Error("unexpected status code : %d, %s", w.Code, w.Body)
+	}
+
+	var ro Organization
+	json.NewDecoder(w.Body).Decode(&ro)
+	if ro.Id != o.Id {
+		t.Error("unexpected organization.id : ", ro.Id)
+	}
+	if ro.Name != o.Name {
+		t.Error("unexpected organization.name : ", ro.Name)
+	}
+	if ro.Url != o.Url {
+		t.Error("unexpected organization.url : ", o.Url)
+	}
+	zeroTime := time.Time{}
+	if ro.CreatedAt == zeroTime {
+		t.Error("unexpected organization.createdAt : ", ro.CreatedAt)
+	}
+	if ro.UpdatedAt == zeroTime {
+		t.Error("unexpected organization.UpdatedAt : ", ro.UpdatedAt)
+	}
+
+	stored := &Organization{
+		Id: o.Id,
+	}
+	err = g.Get(stored)
+	if err != nil {
+		t.Error("unexpected datastore organization, %s", err.Error())
 	}
 }

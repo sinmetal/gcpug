@@ -2,6 +2,7 @@ package gcpug
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -12,6 +13,10 @@ import (
 	"appengine"
 	"appengine/datastore"
 	"github.com/mjibson/goon"
+)
+
+var (
+	ConflictKey = errors.New("datastore: conflict key")
 )
 
 // Organization
@@ -29,7 +34,7 @@ type OrganizationApi struct {
 }
 
 type ErrorResponse struct {
-	Status int
+	Status   int
 	Messages []string
 }
 
@@ -44,13 +49,14 @@ func route(m *web.Mux) {
 	m.Get("/hello/:name", hello)
 	m.Get("/api/1/organization/:id", api.Get)
 	m.Get("/api/1/organization", api.list)
+	m.Post("/api/1/organization", api.Post)
 }
 
 func hello(c web.C, w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Hello, %s!", c.URLParams["name"])
 }
 
-func (a *OrganizationApi) Get (c web.C, w http.ResponseWriter, r *http.Request) {
+func (a *OrganizationApi) Get(c web.C, w http.ResponseWriter, r *http.Request) {
 	ac := appengine.NewContext(r)
 
 	id := c.URLParams["id"]
@@ -77,7 +83,7 @@ func (a *OrganizationApi) Get (c web.C, w http.ResponseWriter, r *http.Request) 
 			http.StatusInternalServerError,
 			[]string{err.Error()},
 		}
-		ac.Errorf(fmt.Sprintf("datastore get error : ", err.Error() ))
+		ac.Errorf(fmt.Sprintf("datastore get error : ", err.Error()))
 		er.Write(w)
 		return
 	}
@@ -111,9 +117,90 @@ func (a *OrganizationApi) list(c web.C, w http.ResponseWriter, r *http.Request) 
 	json.NewEncoder(w).Encode(o)
 }
 
+func (a *OrganizationApi) Post(c web.C, w http.ResponseWriter, r *http.Request) {
+	ac := appengine.NewContext(r)
+
+	var o Organization
+	err := json.NewDecoder(r.Body).Decode(&o)
+	if err != nil {
+		ac.Infof("rquest body, %v", r.Body)
+		er := ErrorResponse{
+			http.StatusBadRequest,
+			[]string{"invalid request"},
+		}
+		er.Write(w)
+		return
+	}
+	defer r.Body.Close()
+
+	err = o.Create(ac)
+	if err == ConflictKey {
+		er := ErrorResponse{
+			http.StatusBadRequest,
+			[]string{"conflict Id"},
+		}
+		er.Write(w)
+		return
+	} else if err != nil {
+		er := ErrorResponse{
+			http.StatusInternalServerError,
+			[]string{err.Error()},
+		}
+		ac.Errorf(fmt.Sprintf("datastore put error : ", err.Error()))
+		er.Write(w)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(o)
+}
+
 func (o *Organization) Get(c appengine.Context) error {
 	g := goon.FromContext(c)
 	return g.Get(o)
+}
+
+func (o *Organization) Create(c appengine.Context) error {
+	g := goon.FromContext(c)
+	return g.RunInTransaction(func(g *goon.Goon) error {
+		stored := &Organization{
+			Id: o.Id,
+		}
+		err := g.Get(stored)
+		if err != datastore.ErrNoSuchEntity {
+			return ConflictKey
+		}
+
+		_, err = g.Put(o)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}, nil)
+}
+
+func (o *Organization) Load(c <-chan datastore.Property) error {
+	if err := datastore.LoadStruct(o, c); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (o *Organization) Save(c chan<- datastore.Property) error {
+	now := time.Now()
+	o.UpdatedAt = now
+
+	if o.CreatedAt.IsZero() {
+		o.CreatedAt = now
+	}
+
+	if err := datastore.SaveStruct(o, c); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (er *ErrorResponse) Write(w http.ResponseWriter) {
