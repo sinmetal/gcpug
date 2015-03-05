@@ -94,27 +94,27 @@ func (a *OrganizationApi) Get(c web.C, w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *OrganizationApi) list(c web.C, w http.ResponseWriter, r *http.Request) {
+    ac := appengine.NewContext(r)
+    g := goon.FromContext(ac)
 
-	o := []Organization{
-		Organization{
-			"sampleid1",
-			"Sinmetal支部1",
-			"http://sinmetal1.org",
-			time.Now(),
-			time.Now(),
-		},
-		Organization{
-			"sampleid2",
-			"Sinmetal支部2",
-			"http://sinmetal2.org",
-			time.Now(),
-			time.Now(),
-		},
-	}
+    q := datastore.NewQuery(goon.DefaultKindName(&Organization{}))
+    q.Order("CreatedAt")
+
+    os := make([]*Organization, 0)
+    _, err := g.GetAll(q, &os)
+    if err != nil {
+        ac.Errorf(err.Error())
+        er := ErrorResponse{
+            http.StatusInternalServerError,
+            []string{"datastore query error"},
+        }
+        er.Write(w)
+        return
+    }
 
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(o)
+	json.NewEncoder(w).Encode(os)
 }
 
 func (a *OrganizationApi) Post(c web.C, w http.ResponseWriter, r *http.Request) {

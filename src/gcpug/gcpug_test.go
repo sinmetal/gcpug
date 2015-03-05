@@ -96,53 +96,84 @@ func TestDoGetOrganization(t *testing.T) {
 }
 
 func TestDoGetOrganizationList(t *testing.T) {
+    inst, c, err := aetestutil.SpinUp()
+    if err != nil {
+        t.Fatal(err)
+    }
+    defer aetestutil.SpinDown()
+
+    g := goon.FromContext(c)
+
+    o1 := &Organization{
+        "sampleId1",
+        "Sinmetal支部1",
+        "http://sinmetal1.org",
+        time.Now(),
+        time.Now(),
+    }
+    _, err = g.Put(o1)
+    if err != nil {
+        t.Fatal("test organization put error : %s", err.Error())
+    }
+
+    o2 := &Organization{
+        "sampleId2",
+        "Sinmetal支2",
+        "http://sinmetal2.org",
+        time.Now(),
+        time.Now(),
+    }
+    _, err = g.Put(o2)
+    if err != nil {
+        t.Fatal("test organization put error : %s", err.Error())
+    }
+
 	m := web.New()
 	route(m)
 	ts := httptest.NewServer(m)
 	defer ts.Close()
 
-	res, err := http.Get(ts.URL + "/api/1/organization")
-	if err != nil {
-		t.Error("unexpected")
-	}
-	if res.StatusCode != http.StatusOK {
-		t.Error("invalid status code")
-	}
+    r, err := inst.NewRequest("GET", ts.URL+"/api/1/organization", nil)
+    if err != nil {
+        t.Error(err.Error())
+    }
+    w := httptest.NewRecorder()
+    http.DefaultServeMux.ServeHTTP(w, r)
+    if w.Code != http.StatusOK {
+        t.Error("unexpected status code : %d, %s", w.Code, w.Body)
+    }
 
 	zeroTime := time.Time{}
 
-	defer res.Body.Close()
 	var o []Organization
-	json.NewDecoder(res.Body).Decode(&o)
+	json.NewDecoder(w.Body).Decode(&o)
 	if len(o) != 2 {
-		t.Error("invalid organization len : ", len(o))
+		t.Error("unexpected organization len : ", len(o))
 	}
-	if o[0].Id != "sampleid1" {
-		t.Error("invalid organization.id : ", o[0].Id)
+	if o[0].Id != o1.Id {
+		t.Errorf("unexpected organization.id : %s, %s", o[0].Id, o1.Id)
 	}
-	if o[0].Name != "Sinmetal支部1" {
-		t.Error("invalid organization.name : ", o[0].Name)
+	if o[0].Name != o1.Name {
+		t.Error("unexpected organization.name : %s, %s", o[0].Name, o1.Name)
 	}
-	if o[0].Url != "http://sinmetal1.org" {
-		t.Error("invalid organization.url : ", o[0].Url)
+	if o[0].Url != o1.Url {
+		t.Error("unexpected organization.url : %s, %s", o[0].Url, o1.Url)
 	}
-
 	if o[0].CreatedAt == zeroTime {
-		t.Error("invalid organization.createdAt : ", o[0].CreatedAt)
+		t.Error("unexpected organization.createdAt : %s", o[0].CreatedAt)
 	}
 
-	if o[1].Id != "sampleid2" {
-		t.Error("invalid organization.id : ", o[1].Id)
+	if o[1].Id != o2.Id {
+		t.Error("unexpected organization.id : %s, %s", o[1].Id, o2.Id)
 	}
-	if o[1].Name != "Sinmetal支部2" {
-		t.Error("invalid organization.name : ", o[1].Name)
+	if o[1].Name != o2.Name {
+		t.Error("unexpected organization.name : %s, %s", o[1].Name, o2.Id)
 	}
-	if o[1].Url != "http://sinmetal2.org" {
-		t.Error("invalid organization.url : ", o[1].Url)
+	if o[1].Url != o2.Url {
+		t.Error("unexpected organization.url : ", o[1].Url, o2.Url)
 	}
-
 	if o[1].CreatedAt == zeroTime {
-		t.Error("invalid organization.createdAt : ", o[1].CreatedAt)
+		t.Error("unexpected organization.createdAt : %s", o[1].CreatedAt)
 	}
 }
 
