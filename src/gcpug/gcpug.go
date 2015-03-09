@@ -39,7 +39,11 @@ type ErrorResponse struct {
 }
 
 func init() {
-	route(goji.DefaultMux)
+	m := goji.DefaultMux
+
+	route(m)
+	SetUpPugEvent(m)
+
 	goji.Serve()
 }
 
