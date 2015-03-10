@@ -67,31 +67,30 @@ func TestDoGetOrganization(t *testing.T) {
 
 	r, err := inst.NewRequest("GET", ts.URL+"/api/1/organization/"+o.Id, nil)
 	if err != nil {
-		t.Error(err.Error())
+		t.Fatal(err)
 	}
 	w := httptest.NewRecorder()
 	http.DefaultServeMux.ServeHTTP(w, r)
 	if w.Code != http.StatusOK {
-		t.Error("unexpected status code : %d, %s", w.Code, w.Body)
+		t.Fatalf("unexpected status code : %d, %s", w.Code, w.Body)
 	}
 
 	var ro Organization
 	json.NewDecoder(w.Body).Decode(&ro)
 	if ro.Id != o.Id {
-		t.Error("invalid organization.id : ", ro.Id)
+		t.Fatalf("unexpected organization.id, %s != %s", ro.Id, o.Id)
 	}
 	if ro.Name != o.Name {
-		t.Error("invalid organization.name : ", ro.Name)
+		t.Fatalf("unexpected organization.name, %s != %s", ro.Name, o.Name)
 	}
 	if ro.Url != o.Url {
-		t.Error("invalid organization.url : ", o.Url)
+		t.Fatalf("unexpected organization.url, %s != %s", ro.Url, o.Url)
 	}
-	zeroTime := time.Time{}
-	if ro.CreatedAt == zeroTime {
-		t.Error("invalid organization.createdAt : ", ro.CreatedAt)
+	if ro.CreatedAt.IsZero() {
+		t.Fatalf("unexpected organization.createdAt, IsZero")
 	}
-	if ro.UpdatedAt == zeroTime {
-		t.Error("invalid organization.UpdatedAt : ", ro.UpdatedAt)
+	if ro.UpdatedAt.IsZero() {
+		t.Fatalf("unexpected organization.updatedAt, IsZero")
 	}
 }
 
@@ -135,43 +134,43 @@ func TestDoGetOrganizationList(t *testing.T) {
 
 	r, err := inst.NewRequest("GET", ts.URL+"/api/1/organization", nil)
 	if err != nil {
-		t.Error(err.Error())
+		t.Error(err)
 	}
 	w := httptest.NewRecorder()
 	http.DefaultServeMux.ServeHTTP(w, r)
 	if w.Code != http.StatusOK {
-		t.Error("unexpected status code : %d, %s", w.Code, w.Body)
+		t.Fatalf("unexpected status code : %d, %s", w.Code, w.Body)
 	}
 
 	var o []Organization
 	json.NewDecoder(w.Body).Decode(&o)
 	if len(o) != 2 {
-		t.Error("unexpected organization len : ", len(o))
+		t.Fatalf("unexpected organization len, %d", len(o))
 	}
 	if o[0].Id != o1.Id {
-		t.Errorf("unexpected organization.id : %s, %s", o[0].Id, o1.Id)
+		t.Fatalf("unexpected organization.id, %s != %s", o[0].Id, o1.Id)
 	}
 	if o[0].Name != o1.Name {
-		t.Error("unexpected organization.name : %s, %s", o[0].Name, o1.Name)
+		t.Fatalf("unexpected organization.name, %s != %s", o[0].Name, o1.Name)
 	}
 	if o[0].Url != o1.Url {
-		t.Error("unexpected organization.url : %s, %s", o[0].Url, o1.Url)
+		t.Fatalf("unexpected organization.url, %s != %s", o[0].Url, o1.Url)
 	}
 	if o[0].CreatedAt.IsZero() {
-		t.Error("unexpected organization.createdAt : %s", o[0].CreatedAt)
+		t.Fatalf("unexpected organization.createdAt IsZero")
 	}
 
 	if o[1].Id != o2.Id {
-		t.Error("unexpected organization.id : %s, %s", o[1].Id, o2.Id)
+		t.Fatalf("unexpected organization.id, %s != %s", o[1].Id, o2.Id)
 	}
 	if o[1].Name != o2.Name {
-		t.Error("unexpected organization.name : %s, %s", o[1].Name, o2.Id)
+		t.Fatalf("unexpected organization.name, %s != %s", o[1].Name, o2.Id)
 	}
 	if o[1].Url != o2.Url {
-		t.Error("unexpected organization.url : ", o[1].Url, o2.Url)
+		t.Fatalf("unexpected organization.url, %s != %s", o[1].Url, o2.Url)
 	}
 	if o[1].CreatedAt.IsZero() {
-		t.Error("unexpected organization.createdAt : %s", o[1].CreatedAt)
+		t.Fatalf("unexpected organization.createdAt, IsZero")
 	}
 }
 
@@ -206,26 +205,25 @@ func TestPostOrganization(t *testing.T) {
 	w := httptest.NewRecorder()
 	http.DefaultServeMux.ServeHTTP(w, r)
 	if w.Code != http.StatusCreated {
-		t.Error("unexpected status code : %d, %s", w.Code, w.Body)
+		t.Fatalf("unexpected status code : %d, %s", w.Code, w.Body)
 	}
 
 	var ro Organization
 	json.NewDecoder(w.Body).Decode(&ro)
 	if ro.Id != o.Id {
-		t.Error("unexpected organization.id : ", ro.Id)
+		t.Fatalf("unexpected organization.id, %s != %s", ro.Id, o.Id)
 	}
 	if ro.Name != o.Name {
-		t.Error("unexpected organization.name : ", ro.Name)
+		t.Fatalf("unexpected organization.name, %s != %s", ro.Name, o.Name)
 	}
 	if ro.Url != o.Url {
-		t.Error("unexpected organization.url : ", o.Url)
+		t.Fatalf("unexpected organization.url, %s != %s", ro.Url, o.Url)
 	}
-	zeroTime := time.Time{}
-	if ro.CreatedAt == zeroTime {
-		t.Error("unexpected organization.createdAt : ", ro.CreatedAt)
+	if ro.CreatedAt.IsZero() {
+		t.Fatalf("unexpected organization.createdAt, IsZero")
 	}
-	if ro.UpdatedAt == zeroTime {
-		t.Error("unexpected organization.UpdatedAt : ", ro.UpdatedAt)
+	if ro.UpdatedAt.IsZero() {
+		t.Fatalf("unexpected organization.updatedAt, IsZero")
 	}
 
 	stored := &Organization{
@@ -233,6 +231,6 @@ func TestPostOrganization(t *testing.T) {
 	}
 	err = g.Get(stored)
 	if err != nil {
-		t.Error("unexpected datastore organization, %s", err.Error())
+		t.Fatalf("unexpected datastore organization, %s", err.Error())
 	}
 }
