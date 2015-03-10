@@ -23,11 +23,11 @@ var (
 //
 // 支部
 type Organization struct {
-	Id        string    `datastore:"-" goon:"id" json:id` // 明示的に入れるID
-	Name      string    `json:name datastore:",noindex"`  // 支部名
-	Url       string    `json:url datastore:",noindex"`   // 支部WebSiteURL
-	CreatedAt time.Time `json createdAt`                  // 作成日時
-	UpdatedAt time.Time `json updatedAt`                  // 更新日時
+	Id        string    `datastore:"-" goon:"id" json:"id"` // 明示的に入れるID
+	Name      string    `json:"name" datastore:",noindex"`  // 支部名
+	Url       string    `json:"url" datastore:",noindex"`   // 支部WebSiteURL
+	CreatedAt time.Time `json:"createdAt"`                  // 作成日時
+	UpdatedAt time.Time `json:"updatedAt"`                  // 更新日時
 }
 
 type OrganizationApi struct {
