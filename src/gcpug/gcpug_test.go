@@ -96,54 +96,52 @@ func TestDoGetOrganization(t *testing.T) {
 }
 
 func TestDoGetOrganizationList(t *testing.T) {
-    inst, c, err := aetestutil.SpinUp()
-    if err != nil {
-        t.Fatal(err)
-    }
-    defer aetestutil.SpinDown()
+	inst, c, err := aetestutil.SpinUp()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer aetestutil.SpinDown()
 
-    g := goon.FromContext(c)
+	g := goon.FromContext(c)
 
-    o1 := &Organization{
-        "sampleId1",
-        "Sinmetal支部1",
-        "http://sinmetal1.org",
-        time.Now(),
-        time.Now(),
-    }
-    _, err = g.Put(o1)
-    if err != nil {
-        t.Fatal("test organization put error : %s", err.Error())
-    }
+	o1 := &Organization{
+		"sampleId1",
+		"Sinmetal支部1",
+		"http://sinmetal1.org",
+		time.Now(),
+		time.Now(),
+	}
+	_, err = g.Put(o1)
+	if err != nil {
+		t.Fatal("test organization put error : %s", err.Error())
+	}
 
-    o2 := &Organization{
-        "sampleId2",
-        "Sinmetal支2",
-        "http://sinmetal2.org",
-        time.Now(),
-        time.Now(),
-    }
-    _, err = g.Put(o2)
-    if err != nil {
-        t.Fatal("test organization put error : %s", err.Error())
-    }
+	o2 := &Organization{
+		"sampleId2",
+		"Sinmetal支2",
+		"http://sinmetal2.org",
+		time.Now(),
+		time.Now(),
+	}
+	_, err = g.Put(o2)
+	if err != nil {
+		t.Fatal("test organization put error : %s", err.Error())
+	}
 
 	m := web.New()
 	route(m)
 	ts := httptest.NewServer(m)
 	defer ts.Close()
 
-    r, err := inst.NewRequest("GET", ts.URL+"/api/1/organization", nil)
-    if err != nil {
-        t.Error(err.Error())
-    }
-    w := httptest.NewRecorder()
-    http.DefaultServeMux.ServeHTTP(w, r)
-    if w.Code != http.StatusOK {
-        t.Error("unexpected status code : %d, %s", w.Code, w.Body)
-    }
-
-	zeroTime := time.Time{}
+	r, err := inst.NewRequest("GET", ts.URL+"/api/1/organization", nil)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	w := httptest.NewRecorder()
+	http.DefaultServeMux.ServeHTTP(w, r)
+	if w.Code != http.StatusOK {
+		t.Error("unexpected status code : %d, %s", w.Code, w.Body)
+	}
 
 	var o []Organization
 	json.NewDecoder(w.Body).Decode(&o)
@@ -159,7 +157,7 @@ func TestDoGetOrganizationList(t *testing.T) {
 	if o[0].Url != o1.Url {
 		t.Error("unexpected organization.url : %s, %s", o[0].Url, o1.Url)
 	}
-	if o[0].CreatedAt == zeroTime {
+	if o[0].CreatedAt.IsZero() {
 		t.Error("unexpected organization.createdAt : %s", o[0].CreatedAt)
 	}
 
@@ -172,7 +170,7 @@ func TestDoGetOrganizationList(t *testing.T) {
 	if o[1].Url != o2.Url {
 		t.Error("unexpected organization.url : ", o[1].Url, o2.Url)
 	}
-	if o[1].CreatedAt == zeroTime {
+	if o[1].CreatedAt.IsZero() {
 		t.Error("unexpected organization.createdAt : %s", o[1].CreatedAt)
 	}
 }
