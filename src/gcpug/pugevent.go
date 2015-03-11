@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/zenazn/goji/web"
@@ -31,6 +32,7 @@ type PugEventApi struct {
 func SetUpPugEvent(m *web.Mux) {
 	api := PugEventApi{}
 
+	m.Get("/api/1/event", api.List)
 	m.Post("/api/1/event", api.Post)
 }
 
@@ -72,6 +74,60 @@ func (a *PugEventApi) Post(c web.C, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(e)
+}
+
+func (a *PugEventApi) List(c web.C, w http.ResponseWriter, r *http.Request) {
+	ac := appengine.NewContext(r)
+	g := goon.FromContext(ac)
+
+	q := datastore.NewQuery(goon.DefaultKindName(&PugEvent{}))
+	q = q.Order("-CreatedAt")
+
+	eok := r.FormValue("organizationKey")
+	if eok != "" {
+		k, err := datastore.DecodeKey(eok)
+		if err != nil {
+			ac.Infof("invalid organizationKey : %s", eok)
+			er := ErrorResponse{
+				http.StatusBadRequest,
+				[]string{"invalid organizationKey"},
+			}
+			er.Write(w)
+			return
+		}
+		q = q.Filter("OrganizationKey = ", k)
+	}
+
+	limit := r.FormValue("limit")
+	if limit != "" {
+		l, err := strconv.Atoi(limit)
+		if err != nil {
+			ac.Infof("invalid limit : %s", limit)
+			er := ErrorResponse{
+				http.StatusBadRequest,
+				[]string{"invalid limit"},
+			}
+			er.Write(w)
+			return
+		}
+		q = q.Limit(l)
+	}
+
+	pes := make([]*PugEvent, 0)
+	_, err := g.GetAll(q, &pes)
+	if err != nil {
+		ac.Errorf(err.Error())
+		er := ErrorResponse{
+			http.StatusInternalServerError,
+			[]string{"datastore query error"},
+		}
+		er.Write(w)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(pes)
 }
 
 func (pe *PugEvent) Validate() error {

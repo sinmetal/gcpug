@@ -10,10 +10,28 @@ import (
 	"testing"
 	"time"
 
+	"appengine"
 	"github.com/mjibson/goon"
 
 	"github.com/sinmetal/gaego_unittest_util/aetestutil"
 )
+
+type OrganizationTester struct {
+}
+
+func (t *OrganizationTester) MakeDefaultOrganization(c appengine.Context) (Organization, error) {
+	g := goon.FromContext(c)
+
+	o := Organization{
+		"sampleId",
+		"Sinmetal支部",
+		"http://sinmetal.org",
+		time.Now(),
+		time.Now(),
+	}
+	_, err := g.Put(&o)
+	return o, err
+}
 
 func TestHello(t *testing.T) {
 	m := web.New()
