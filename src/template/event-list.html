@@ -1,0 +1,19 @@
+<!--  Handlebars Templates-->
+<script  id="template-event-list" type="text/x-handlebars-template">
+{{#each list}}
+    <div class="card">
+      <div class="card-content valign-wrapper">
+        <div class="col s2">
+          <img src="images/sinmetal.png" alt="" class="responsive-img"> <!-- notice the "circle" class -->
+        </div>
+        <div class="col s10">
+          <h5 class="left-align">{{title}}</h5>
+          <span class="black-text">{{description}}</span>
+        </div>
+      </div>
+      <div class="card-action grey lighten-4 right-align">
+        <a href='{{url}}' class="light-blue-text text-darken-1" target="_blank">お申し込み・詳細確認はこちらから</a>
+      </div>
+    </div>
+{{/each}}
+</script>

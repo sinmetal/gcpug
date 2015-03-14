@@ -10,6 +10,9 @@
     },
     "handlebars/handlebars.d.ts": {
       "commit": "3882d337bb0808cde9fe4c08012508a48c135482"
+    },
+    "es6-promise/es6-promise.d.ts": {
+      "commit": "40eea5dc8f672e511abed203b2bb087026beec60"
     }
   }
 }

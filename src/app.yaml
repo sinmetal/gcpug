@@ -7,6 +7,14 @@ handlers:
 - url: /
   static_files: index.html
   upload: index.html
+- url: /group
+  static_files: group.html
+  upload: group.html
+- url: /event
+  static_files: event.html
+  upload: event.html
+- url: /template
+  static_dir: template
 - url: /css
   static_dir: css
 - url: /images
