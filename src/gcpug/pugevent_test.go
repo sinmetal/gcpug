@@ -46,6 +46,9 @@ func (pet *PugEventTester) Equal(t *testing.T, pe1 PugEvent, pe2 PugEvent) {
 	if pe1.Title != pe2.Title {
 		t.Fatalf("unexpected response pugEvent.Title, %s != %s", pe1.Title, pe2.Title)
 	}
+	if pe1.Description != pe2.Description {
+		t.Fatalf("unexpected response pugEvent description, %s != %s", pe1.Description, pe2.Description)
+	}
 	if pe1.Url != pe2.Url {
 		t.Fatalf("unexpected response pugEvent.Url, %s != %s", pe1.Url, pe2.Url)
 	}
@@ -83,6 +86,7 @@ func TestPostPugEvent(t *testing.T) {
 	pe := &PugEvent{
 		OrganizationKey: oKey,
 		Title:           "GAEハンズオン",
+		Description:     "初心者のためのGAEハンズオン！",
 		Url:             "http://example.com",
 		StartAt:         time.Now(),
 	}
@@ -117,6 +121,9 @@ func TestPostPugEvent(t *testing.T) {
 	}
 	if re.Title != pe.Title {
 		t.Fatalf("unexpected pug event title, %s != %s", re.Title, pe.Title)
+	}
+	if re.Description != pe.Description {
+		t.Fatalf("unexpected pug event description, %s != %s", re.Description, pe.Description)
 	}
 	if *re.OrganizationKey != *pe.OrganizationKey {
 		t.Fatalf("unexpected pug event organization key, %v != %v", re.OrganizationKey, pe.OrganizationKey)
