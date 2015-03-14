@@ -26,6 +26,7 @@ func (t *OrganizationTester) MakeDefaultOrganization(c appengine.Context) (Organ
 		"sampleId",
 		"Sinmetal支部",
 		"http://sinmetal.org",
+		"http://sinmetal.org/logo.png",
 		time.Now(),
 		time.Now(),
 	}
@@ -70,6 +71,7 @@ func TestDoGetOrganization(t *testing.T) {
 		"sampleId",
 		"Sinmetal支部",
 		"http://sinmetal.org",
+		"http://sinmetal.org/logo.png",
 		time.Now(),
 		time.Now(),
 	}
@@ -104,6 +106,9 @@ func TestDoGetOrganization(t *testing.T) {
 	if ro.Url != o.Url {
 		t.Fatalf("unexpected organization.url, %s != %s", ro.Url, o.Url)
 	}
+	if ro.LogoUrl != o.LogoUrl {
+		t.Fatalf("unexpected organization.logoUrl, %s != %s", ro.LogoUrl, o.LogoUrl)
+	}
 	if ro.CreatedAt.IsZero() {
 		t.Fatalf("unexpected organization.createdAt, IsZero")
 	}
@@ -125,6 +130,7 @@ func TestDoGetOrganizationList(t *testing.T) {
 		"sampleId1",
 		"Sinmetal支部1",
 		"http://sinmetal1.org",
+		"http://sinmetal.org/logo.png",
 		time.Now(),
 		time.Now(),
 	}
@@ -137,6 +143,7 @@ func TestDoGetOrganizationList(t *testing.T) {
 		"sampleId2",
 		"Sinmetal支2",
 		"http://sinmetal2.org",
+		"http://sinmetal.org/logo.png",
 		time.Now(),
 		time.Now(),
 	}
@@ -174,6 +181,9 @@ func TestDoGetOrganizationList(t *testing.T) {
 	if o[0].Url != o1.Url {
 		t.Fatalf("unexpected organization.url, %s != %s", o[0].Url, o1.Url)
 	}
+	if o[0].LogoUrl != o1.LogoUrl {
+		t.Fatalf("unexpected organization.logoUrl, %s != %s", o[0].LogoUrl, o1.LogoUrl)
+	}
 	if o[0].CreatedAt.IsZero() {
 		t.Fatalf("unexpected organization.createdAt IsZero")
 	}
@@ -186,6 +196,9 @@ func TestDoGetOrganizationList(t *testing.T) {
 	}
 	if o[1].Url != o2.Url {
 		t.Fatalf("unexpected organization.url, %s != %s", o[1].Url, o2.Url)
+	}
+	if o[1].LogoUrl != o2.LogoUrl {
+		t.Fatalf("unexpected organization.logoUrl, %s != %s", o[1].LogoUrl, o2.LogoUrl)
 	}
 	if o[1].CreatedAt.IsZero() {
 		t.Fatalf("unexpected organization.createdAt, IsZero")
@@ -202,9 +215,10 @@ func TestPostOrganization(t *testing.T) {
 	g := goon.FromContext(c)
 
 	o := &Organization{
-		Id:   "sampleId",
-		Name: "Sinmetal支部",
-		Url:  "http://sinmetal.org",
+		Id:      "sampleId",
+		Name:    "Sinmetal支部",
+		Url:     "http://sinmetal.org",
+		LogoUrl: "http://sinmetal.org/logo.png",
 	}
 	b, err := json.Marshal(o)
 	if err != nil {
@@ -236,6 +250,9 @@ func TestPostOrganization(t *testing.T) {
 	}
 	if ro.Url != o.Url {
 		t.Fatalf("unexpected organization.url, %s != %s", ro.Url, o.Url)
+	}
+	if ro.LogoUrl != o.LogoUrl {
+		t.Fatalf("unexpected organization.logoUrl, %s != %s", ro.LogoUrl, o.LogoUrl)
 	}
 	if ro.CreatedAt.IsZero() {
 		t.Fatalf("unexpected organization.createdAt, IsZero")
