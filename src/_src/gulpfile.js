@@ -21,6 +21,14 @@ gulp.task('compass', function() {
 			sass: 'sass',
 			comments: false
 		}));
+	gulp.src('sass/materialize/*.scss')
+		.pipe(plumber())
+		.pipe(compass({
+			config_file: './config.rb',
+			css: '../css',
+			sass: 'sass/materialize',
+			comments: false
+		}));
 });
 
 gulp.task('watch', ['typescript', 'compass'], function() {
