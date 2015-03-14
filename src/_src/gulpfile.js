@@ -31,7 +31,7 @@ gulp.task('compass', function() {
 		}));
 });
 
-gulp.task('watch', ['typescript', 'compass'], function() {
-	gulp.watch('typescript/**', ['typescript']);
+gulp.task('watch', [ 'typescript',  'compass'], function() {
+	 gulp.watch('typescript/**', ['typescript']);
 	gulp.watch('sass/**', ['compass']);
 });
