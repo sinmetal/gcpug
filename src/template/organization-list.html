@@ -3,12 +3,18 @@
 {{#each list}}
     <div class="card">
       <div class="card-content valign-wrapper">
+  {{#if image}}
         <div class="col s2">
-          <img src="images/sinmetal.png" alt="" class="responsive-img"> <!-- notice the "circle" class -->
+          <img src="{{image}}" alt="" class="responsive-img"> <!-- notice the "circle" class -->
         </div>
         <div class="col s10">
           <h5 class="left-align">{{name}}</h5>
         </div>
+  {{else}}
+        <div class="col s12">
+          <h5 class="left-align">{{name}}</h5>
+        </div>
+  {{/if}}
       </div>
     </div>
 {{/each}}
