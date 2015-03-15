@@ -17,14 +17,14 @@ import (
 )
 
 type PugEvent struct {
-	Id              string         `datastore:"-" goon:"id" json:"id"`       // UUID
-	OrganizationKey *datastore.Key `json:"organizationKey"`                  // 支部KindKey
-	Title           string         `json:"title" datastore:",noindex"`       // イベントタイトル
-	Description     string         `json:"description" datastore:",noindex"` // イベント説明
-	Url             string         `json:"url" datastore:",noindex"`         // イベント募集URL
-	StartAt         time.Time      `json:"startAt"`                          // 開催日時
-	CreatedAt       time.Time      `json:"createdAt"`                        // 作成日時
-	UpdatedAt       time.Time      `json:"updatedAt"`                        // 更新日時
+	Id             string    `datastore:"-" goon:"id" json:"id"`       // UUID
+	OrganizationId string    `json:"organizationId"`                   // 支部Id
+	Title          string    `json:"title" datastore:",noindex"`       // イベントタイトル
+	Description    string    `json:"description" datastore:",noindex"` // イベント説明
+	Url            string    `json:"url" datastore:",noindex"`         // イベント募集URL
+	StartAt        time.Time `json:"startAt"`                          // 開催日時
+	CreatedAt      time.Time `json:"createdAt"`                        // 作成日時
+	UpdatedAt      time.Time `json:"updatedAt"`                        // 更新日時
 }
 
 type PugEventApi struct {

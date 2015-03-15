@@ -23,13 +23,12 @@ type PugEventTester struct {
 func (t *PugEventTester) MakePugEvent(c appengine.Context, o Organization, n int) (PugEvent, error) {
 	g := goon.FromContext(c)
 
-	k := g.Key(o)
 	pe := PugEvent{
-		Id:              fmt.Sprintf("test%d", n),
-		OrganizationKey: k,
-		Title:           fmt.Sprintf("GAEハンズオン%d", n),
-		Url:             fmt.Sprintf("http://example%d.com", n),
-		StartAt:         time.Now(),
+		Id:             fmt.Sprintf("test%d", n),
+		OrganizationId: o.Id,
+		Title:          fmt.Sprintf("GAEハンズオン%d", n),
+		Url:            fmt.Sprintf("http://example%d.com", n),
+		StartAt:        time.Now(),
 	}
 	c.Infof("%v", pe)
 	_, err := g.Put(&pe)
@@ -40,8 +39,8 @@ func (pet *PugEventTester) Equal(t *testing.T, pe1 PugEvent, pe2 PugEvent) {
 	if pe1.Id != pe2.Id {
 		t.Fatalf("unexpected response pugEvent.Id, %s != %s", pe1.Id, pe2.Id)
 	}
-	if *pe1.OrganizationKey != *pe2.OrganizationKey {
-		t.Fatalf("unexpected response pugEvent.OrganizationKey, %v != %v", pe1.OrganizationKey, pe2.OrganizationKey)
+	if pe1.OrganizationId != pe2.OrganizationId {
+		t.Fatalf("unexpected response pugEvent.OrganizationId, %v != %v", pe1.OrganizationId, pe2.OrganizationId)
 	}
 	if pe1.Title != pe2.Title {
 		t.Fatalf("unexpected response pugEvent.Title, %s != %s", pe1.Title, pe2.Title)
@@ -81,14 +80,12 @@ func TestPostPugEvent(t *testing.T) {
 		Id: "organizationId",
 	}
 
-	oKey := g.Key(o)
-
 	pe := &PugEvent{
-		OrganizationKey: oKey,
-		Title:           "GAEハンズオン",
-		Description:     "初心者のためのGAEハンズオン！",
-		Url:             "http://example.com",
-		StartAt:         time.Now(),
+		OrganizationId: o.Id,
+		Title:          "GAEハンズオン",
+		Description:    "初心者のためのGAEハンズオン！",
+		Url:            "http://example.com",
+		StartAt:        time.Now(),
 	}
 
 	b, err := json.Marshal(pe)
@@ -125,8 +122,8 @@ func TestPostPugEvent(t *testing.T) {
 	if re.Description != pe.Description {
 		t.Fatalf("unexpected pug event description, %s != %s", re.Description, pe.Description)
 	}
-	if *re.OrganizationKey != *pe.OrganizationKey {
-		t.Fatalf("unexpected pug event organization key, %v != %v", re.OrganizationKey, pe.OrganizationKey)
+	if re.OrganizationId != pe.OrganizationId {
+		t.Fatalf("unexpected pug event organization id, %v != %v", re.OrganizationId, pe.OrganizationId)
 	}
 	if re.StartAt != pe.StartAt {
 		t.Fatalf("unexpected pug envet start at, %s != %s", re.StartAt, pe.StartAt)
@@ -159,11 +156,10 @@ func TestPugEventSave(t *testing.T) {
 	o := &Organization{
 		Id: "organizationId",
 	}
-	key := g.Key(o)
 
 	pe := &PugEvent{
-		Id:              "hogeId",
-		OrganizationKey: key,
+		Id:             "hogeId",
+		OrganizationId: o.Id,
 	}
 
 	_, err = g.Put(pe)
@@ -178,7 +174,7 @@ func TestPugEventSave(t *testing.T) {
 	}
 
 	var after PugEvent
-	peJson := `{"Id":"hogeId","OrganizationKey":"agxkZXZ-dW5pdHRlc3RyIAsSDE9yZ2FuaXphdGlvbiIOb3JnYW5pemF0aW9uSWQM","Title":"hogeTitle","Url":"http://example.com","StartAt":"2015-03-09T19:47:16.801665955+09:00","CreatedAt":"2015-03-09T19:47:16.801665955+09:00","UpdatedAt":"2015-03-09T19:47:16.801665955+09:00"}`
+	peJson := `{"Id":"hogeId","OrganizationId":"organizationId","Title":"hogeTitle","Url":"http://example.com","StartAt":"2015-03-09T19:47:16.801665955+09:00","CreatedAt":"2015-03-09T19:47:16.801665955+09:00","UpdatedAt":"2015-03-09T19:47:16.801665955+09:00"}`
 	err = json.Unmarshal([]byte(peJson), &after)
 	if err != nil {
 		t.Error(err)
@@ -186,8 +182,8 @@ func TestPugEventSave(t *testing.T) {
 	if after.Id != "hogeId" {
 		t.Fatalf("unexpected id. id = %s")
 	}
-	if *after.OrganizationKey != *key {
-		t.Fatalf("unexpected organization key : %s != %s", after.OrganizationKey, key)
+	if after.OrganizationId != o.Id {
+		t.Fatalf("unexpected organization id : %s != %s", after.OrganizationId, o.Id)
 	}
 
 	expectedStartAt, err := time.Parse(
