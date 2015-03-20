@@ -1,6 +1,7 @@
 /// <reference path="../typings/jquery/jquery.d.ts" />
 /// <reference path="../typings/materialize/materialize.d.ts" />
 /// <reference path="../typings/handlebars/handlebars.d.ts" />
+/// <reference path="../typings/moment-timezone/moment-timezone.d.ts" />
 /// <reference path="../typings/es6-promise/es6-promise.d.ts" />
 module GCPUG {
 
@@ -60,9 +61,25 @@ module GCPUG {
 		init() {
 			$('.button-collapse').sideNav();
 
+			Handlebars.registerHelper('formatDatetime', function(time : string) {
+				var startAt = moment(time);
+				var zone = moment().zone();
+				return startAt.zone(zone).format('YYYY/M/D h:mm')+'〜';
+			});
+
+			Handlebars.registerHelper('getColorClassByDate', function(time : string) {
+				var startAt = moment(time);
+				if ( startAt.isSame(moment(), 'day') ) {
+					return 'amber lighten-5';
+				}
+				if ( startAt.isBefore(moment(), 'day') ) {
+					return 'grey lighten-3';
+				}
+				return '';
+			});
+
 			var api = new Api();
 			api.getEventList();
-
 			api.getOrganizationList();
 		}
 	}
