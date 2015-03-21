@@ -1,5 +1,5 @@
-application: gcp-ug
-version: 20141211
+application: gcp-ug-dev
+version: 20150315a
 runtime: go
 api_version: go1
 
