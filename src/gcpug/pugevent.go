@@ -43,7 +43,7 @@ func (a *PugEventApi) Post(c web.C, w http.ResponseWriter, r *http.Request) {
 	var e PugEvent
 	err := json.NewDecoder(r.Body).Decode(&e)
 	if err != nil {
-		ac.Infof("rquest body, %v", r.Body)
+		ac.Infof("request decode error : %s", err.Error())
 		er := ErrorResponse{
 			http.StatusBadRequest,
 			[]string{"invalid request"},
