@@ -55,6 +55,7 @@ func route(m *web.Mux) {
 	m.Get("/api/1/organization/:id", api.Get)
 	m.Get("/api/1/organization", api.list)
 	m.Post("/api/1/organization", api.Post)
+	m.Put("/api/1/organization", api.Put)
 }
 
 func hello(c web.C, w http.ResponseWriter, r *http.Request) {
@@ -161,6 +162,38 @@ func (a *OrganizationApi) Post(c web.C, w http.ResponseWriter, r *http.Request) 
 	json.NewEncoder(w).Encode(o)
 }
 
+func (a *OrganizationApi) Put(c web.C, w http.ResponseWriter, r *http.Request) {
+	ac := appengine.NewContext(r)
+
+	var o Organization
+	err := json.NewDecoder(r.Body).Decode(&o)
+	if err != nil {
+		ac.Infof("rquest body, %v", r.Body)
+		er := ErrorResponse{
+			http.StatusBadRequest,
+			[]string{"invalid request"},
+		}
+		er.Write(w)
+		return
+	}
+	defer r.Body.Close()
+
+	err = o.Update(ac)
+	if err != nil {
+		er := ErrorResponse{
+			http.StatusInternalServerError,
+			[]string{err.Error()},
+		}
+		ac.Errorf(fmt.Sprintf("datastore put error : ", err.Error()))
+		er.Write(w)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(o)
+}
+
 func (o *Organization) Get(c appengine.Context) error {
 	g := goon.FromContext(c)
 	return g.Get(o)
@@ -177,6 +210,30 @@ func (o *Organization) Create(c appengine.Context) error {
 			return ConflictKey
 		}
 
+		_, err = g.Put(o)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}, nil)
+}
+
+func (o *Organization) Update(c appengine.Context) error {
+	g := goon.FromContext(c)
+	return g.RunInTransaction(func(g *goon.Goon) error {
+		stored := &Organization{
+			Id: o.Id,
+		}
+		err := g.Get(stored)
+		if err != nil {
+			return err
+		}
+
+		o.CreatedAt = stored.CreatedAt
+		o.UpdatedAt = stored.UpdatedAt
+
+		c.Infof("new name %s", o.Name)
 		_, err = g.Put(o)
 		if err != nil {
 			return err
