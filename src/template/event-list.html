@@ -1,0 +1,16 @@
+<!--  Handlebars Templates-->
+<script  id="template-event-list" type="text/x-handlebars-template">
+{{#each list}}
+    <div class="card">
+      <div class="card-content valign-wrapper {{#getColorClassByDate startAt}}{{/getColorClassByDate}}">
+        <div class="col s12">
+          <h5 class="left-align">
+          <a href='{{url}}' class="light-blue-text text-darken-1" target="_blank">{{title}}<i class="tiny mdi-action-launch"></i></a>
+          </h5>
+          <p><span class="black-text">{{description}}</span></p>
+          <label>{{#formatDatetime startAt}}{{/formatDatetime}}</label>
+        </div>
+      </div>
+    </div>
+{{/each}}
+</script>

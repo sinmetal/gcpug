@@ -1,0 +1,24 @@
+application: gcp-ug-dev
+version: 20150315a
+runtime: go
+api_version: go1
+
+handlers:
+- url: /
+  static_files: index.html
+  upload: index.html
+- url: /about
+  static_files: about.html
+  upload: about.html
+- url: /template
+  static_dir: template
+- url: /css
+  static_dir: css
+- url: /images
+  static_dir: images
+- url: /js
+  static_dir: js
+- url: /font
+  static_dir: font
+- url: /.*
+  script: _go_app

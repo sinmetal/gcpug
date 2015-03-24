@@ -1,0 +1,17 @@
+<!--  Handlebars Templates-->
+<script  id="template-organization-list" type="text/x-handlebars-template">
+{{#each list}}
+    <div class="card">
+      <div class="card-content valign-wrapper">
+        <div class="col s2">
+         {{#if logoUrl}}
+          <img src="{{logoUrl}}" alt="" class="responsive-img"> <!-- notice the "circle" class -->
+        {{/if}}
+        </div>
+        <div class="col s10">
+          <h5 class="left-align">{{name}}</h5>
+        </div>
+      </div>
+    </div>
+{{/each}}
+</script>

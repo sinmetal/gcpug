@@ -1,0 +1,53 @@
+/* Custom Stylesheet */
+/**
+ * Use this file to override Materialize files so you can update
+ * the core Materialize files in the future
+ *
+ * Made By MaterializeCSS.com
+ */
+
+.icon-block {
+  padding: 0 15px;
+}
+
+ul.side-nav.fixed li.logo {
+    padding: 15px !important;
+    border-bottom: 1px solid #ddd;
+    line-height: normal;
+}
+ul.side-nav.fixed li.logo:hover {
+    background: none;
+}
+
+header, main, footer {
+    padding-left: 240px; }
+
+.parallax-demo header, .parallax-demo main, .parallax-demo footer {
+    padding-left: 0; }
+
+footer.example {
+    padding-left: 0;
+}
+
+.aiueo {
+}
+.aiueo2 {
+    min-height: 160px;
+}
+.aiueo2 p {
+    overflow: hidden;
+    height: 3em;
+}
+
+
+@media only screen and (max-width : 992px) {
+    header, main, footer {
+        padding-left: 0;
+    }
+}
+
+@media only screen and (min-width : 992px) {
+    .container {
+        width: 100%;
+    }
+}
