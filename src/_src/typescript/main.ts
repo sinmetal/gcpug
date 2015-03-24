@@ -64,7 +64,7 @@ module GCPUG {
 			Handlebars.registerHelper('formatDatetime', function(time : string) {
 				var startAt = moment(time);
 				var zone = moment().zone();
-				return startAt.zone(zone).format('YYYY/M/D h:mm')+'〜';
+				return startAt.zone(zone).format('YYYY/M/D H:mm')+'〜';
 			});
 
 			Handlebars.registerHelper('getColorClassByDate', function(time : string) {
