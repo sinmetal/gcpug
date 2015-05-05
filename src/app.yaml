@@ -1,5 +1,5 @@
 application: gcp-ug-dev
-version: 20150315a
+version: 20150505a
 runtime: go
 api_version: go1
 
@@ -10,6 +10,9 @@ handlers:
 - url: /about
   static_files: about.html
   upload: about.html
+- url: /join
+  static_files: join.html
+  upload: join.html
 - url: /template
   static_dir: template
 - url: /css
