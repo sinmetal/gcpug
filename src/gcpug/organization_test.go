@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/zenazn/goji/web"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -34,30 +33,6 @@ func (t *OrganizationTester) MakeDefaultOrganization(c appengine.Context) (Organ
 	return o, err
 }
 
-func TestHello(t *testing.T) {
-	m := web.New()
-	route(m)
-	ts := httptest.NewServer(m)
-	defer ts.Close()
-
-	res, err := http.Get(ts.URL + "/hello/sinmetal")
-	if err != nil {
-		t.Error("unexpected")
-	}
-	if res.StatusCode != http.StatusOK {
-		t.Error("invalid status code")
-	}
-
-	defer res.Body.Close()
-	body, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		panic(err)
-	}
-	if string(body) != "Hello, sinmetal!" {
-		t.Error("invalid body : ", string(body))
-	}
-}
-
 func TestDoGetOrganization(t *testing.T) {
 	inst, c, err := aetestutil.SpinUp()
 	if err != nil {
@@ -81,7 +56,6 @@ func TestDoGetOrganization(t *testing.T) {
 	}
 
 	m := web.New()
-	route(m)
 	ts := httptest.NewServer(m)
 	defer ts.Close()
 
@@ -153,7 +127,6 @@ func TestDoGetOrganizationList(t *testing.T) {
 	}
 
 	m := web.New()
-	route(m)
 	ts := httptest.NewServer(m)
 	defer ts.Close()
 
@@ -226,7 +199,6 @@ func TestPostOrganization(t *testing.T) {
 	}
 
 	m := web.New()
-	route(m)
 	ts := httptest.NewServer(m)
 	defer ts.Close()
 
@@ -300,7 +272,6 @@ func TestPutOrganization(t *testing.T) {
 	}
 
 	m := web.New()
-	route(m)
 	ts := httptest.NewServer(m)
 	defer ts.Close()
 

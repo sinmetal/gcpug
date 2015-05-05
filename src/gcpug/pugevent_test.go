@@ -94,7 +94,6 @@ func TestPostPugEvent(t *testing.T) {
 	}
 
 	m := web.New()
-	route(m)
 	ts := httptest.NewServer(m)
 	defer ts.Close()
 
@@ -222,7 +221,6 @@ func TestListPugEvent(t *testing.T) {
 	}
 
 	m := web.New()
-	route(m)
 	ts := httptest.NewServer(m)
 	defer ts.Close()
 
