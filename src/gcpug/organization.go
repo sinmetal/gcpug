@@ -21,6 +21,7 @@ type Organization struct {
 	Name      string    `json:"name" datastore:",noindex"`    // 支部名
 	Url       string    `json:"url" datastore:",noindex"`     // 支部WebSiteURL
 	LogoUrl   string    `json:"logoUrl" datastore:",noindex"` // LogoURL
+	Order     int       `json:"order"`                        // 並び順
 	CreatedAt time.Time `json:"createdAt"`                    // 作成日時
 	UpdatedAt time.Time `json:"updatedAt"`                    // 更新日時
 }
@@ -32,7 +33,7 @@ func SetUpOrganization(m *web.Mux) {
 	api := OrganizationApi{}
 
 	m.Get("/api/1/organization/:id", api.Get)
-	m.Get("/api/1/organization", api.list)
+	m.Get("/api/1/organization", api.List)
 	m.Post("/api/1/organization", api.Post)
 	m.Put("/api/1/organization", api.Put)
 }
@@ -74,12 +75,12 @@ func (a *OrganizationApi) Get(c web.C, w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(o)
 }
 
-func (a *OrganizationApi) list(c web.C, w http.ResponseWriter, r *http.Request) {
+func (a *OrganizationApi) List(c web.C, w http.ResponseWriter, r *http.Request) {
 	ac := appengine.NewContext(r)
 	g := goon.FromContext(ac)
 
-	q := datastore.NewQuery(goon.DefaultKindName(&Organization{}))
-	q.Order("CreatedAt")
+	q := datastore.NewQuery(goon.DefaultKindName(&Organization{})).
+		Order("Order")
 
 	os := make([]*Organization, 0)
 	_, err := g.GetAll(q, &os)

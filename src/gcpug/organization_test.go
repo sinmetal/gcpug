@@ -26,6 +26,7 @@ func (t *OrganizationTester) MakeDefaultOrganization(c appengine.Context) (Organ
 		"Sinmetal支部",
 		"http://sinmetal.org",
 		"http://sinmetal.org/logo.png",
+		100,
 		time.Now(),
 		time.Now(),
 	}
@@ -47,6 +48,7 @@ func TestDoGetOrganization(t *testing.T) {
 		"Sinmetal支部",
 		"http://sinmetal.org",
 		"http://sinmetal.org/logo.png",
+		100,
 		time.Now(),
 		time.Now(),
 	}
@@ -100,28 +102,30 @@ func TestDoGetOrganizationList(t *testing.T) {
 
 	g := goon.FromContext(c)
 
-	o1 := &Organization{
-		"sampleId1",
-		"Sinmetal支部1",
-		"http://sinmetal1.org",
-		"http://sinmetal.org/logo.png",
-		time.Now(),
-		time.Now(),
-	}
-	_, err = g.Put(o1)
-	if err != nil {
-		t.Fatal("test organization put error : %s", err.Error())
-	}
-
 	o2 := &Organization{
 		"sampleId2",
 		"Sinmetal支2",
 		"http://sinmetal2.org",
 		"http://sinmetal.org/logo.png",
+		200,
 		time.Now(),
 		time.Now(),
 	}
 	_, err = g.Put(o2)
+	if err != nil {
+		t.Fatal("test organization put error : %s", err.Error())
+	}
+
+	o1 := &Organization{
+		"sampleId1",
+		"Sinmetal支部1",
+		"http://sinmetal1.org",
+		"http://sinmetal.org/logo.png",
+		100,
+		time.Now(),
+		time.Now(),
+	}
+	_, err = g.Put(o1)
 	if err != nil {
 		t.Fatal("test organization put error : %s", err.Error())
 	}
@@ -157,6 +161,9 @@ func TestDoGetOrganizationList(t *testing.T) {
 	if o[0].LogoUrl != o1.LogoUrl {
 		t.Fatalf("unexpected organization.logoUrl, %s != %s", o[0].LogoUrl, o1.LogoUrl)
 	}
+	if o[0].Order != o1.Order {
+		t.Fatalf("unexpected organization.orer, %s != %s", o[0].Order, o1.Order)
+	}
 	if o[0].CreatedAt.IsZero() {
 		t.Fatalf("unexpected organization.createdAt IsZero")
 	}
@@ -172,6 +179,9 @@ func TestDoGetOrganizationList(t *testing.T) {
 	}
 	if o[1].LogoUrl != o2.LogoUrl {
 		t.Fatalf("unexpected organization.logoUrl, %s != %s", o[1].LogoUrl, o2.LogoUrl)
+	}
+	if o[1].Order != o2.Order {
+		t.Fatalf("unexpected organization.order %s != %s", o[1].Order, o2.Order)
 	}
 	if o[1].CreatedAt.IsZero() {
 		t.Fatalf("unexpected organization.createdAt, IsZero")
@@ -192,6 +202,7 @@ func TestPostOrganization(t *testing.T) {
 		Name:    "Sinmetal支部",
 		Url:     "http://sinmetal.org",
 		LogoUrl: "http://sinmetal.org/logo.png",
+		Order:   100,
 	}
 	b, err := json.Marshal(o)
 	if err != nil {
@@ -225,6 +236,9 @@ func TestPostOrganization(t *testing.T) {
 	}
 	if ro.LogoUrl != o.LogoUrl {
 		t.Fatalf("unexpected organization.logoUrl, %s != %s", ro.LogoUrl, o.LogoUrl)
+	}
+	if ro.Order != o.Order {
+		t.Fatalf("unexpected organization.order, %s != %s", ro.Order, o.Order)
 	}
 	if ro.CreatedAt.IsZero() {
 		t.Fatalf("unexpected organization.createdAt, IsZero")
@@ -265,6 +279,7 @@ func TestPutOrganization(t *testing.T) {
 		Name:    "Sinmetal支部",
 		Url:     "http://sinmetal.org",
 		LogoUrl: "http://sinmetal.org/logo.png",
+		Order:   100,
 	}
 	b, err := json.Marshal(o)
 	if err != nil {
@@ -298,6 +313,9 @@ func TestPutOrganization(t *testing.T) {
 	}
 	if ro.LogoUrl != o.LogoUrl {
 		t.Fatalf("unexpected organization.logoUrl, %s != %s", ro.LogoUrl, o.LogoUrl)
+	}
+	if ro.Order != o.Order {
+		t.Fatalf("unexpected organization.order, %s != %s", ro.Order, o.Order)
 	}
 	if ro.CreatedAt.IsZero() {
 		t.Fatalf("unexpected organization.createdAt, IsZero")
