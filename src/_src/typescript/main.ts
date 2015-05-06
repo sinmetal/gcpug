@@ -29,7 +29,7 @@ module GCPUG {
 			getTemplate.then(function() {
 				$.ajax({
 					method : 'get',
-					url : '/api/1/event',
+					url : '/api/1/event?limit=5',
 					success : function (data, status, jqXHR) {
 						var source = $('#template-event-list').html();
 						var template = Handlebars.compile(source);
