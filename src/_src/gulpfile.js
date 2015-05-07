@@ -8,7 +8,7 @@ gulp.task('typescript', function() {
 	return gulp.src('typescript/*.ts')
 		.pipe(plumber())
 		.pipe(typescript())
-		.pipe(uglify())
+		//.pipe(uglify())
 		.pipe(gulp.dest('../js'));
 });
 

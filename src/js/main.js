@@ -1,1 +1,64 @@
-var GCPUG;!function(t){var e=function(){function t(){}return t.prototype.getTemplate=function(t){return new Promise(function(e){0===$("#template-"+t).length?$.ajax({method:"get",url:"/template/"+t+".html",dataType:"text",success:function(t,n,i){$("body").append(t),e("success")}}):e("success")})},t.prototype.getEventList=function(){var t=this.getTemplate("event-list");t.then(function(){$.ajax({method:"get",url:"/api/1/event?limit=5",success:function(t,e,n){var i=$("#template-event-list").html(),a=Handlebars.compile(i),o=a({list:t});$("#event-list").append(o)}})})},t.prototype.getOrganizationList=function(){var t=this.getTemplate("organization-list");t.then(function(){$.ajax({method:"get",url:"/api/1/organization",success:function(t,e,n){var i=$("#template-organization-list").html(),a=Handlebars.compile(i),o=a({list:t});$("#organization-list").append(o)}})})},t}();t.Api=e;var n=function(){function t(){}return t.prototype.init=function(){$(".button-collapse").sideNav(),Handlebars.registerHelper("formatDatetime",function(t){var e=moment(t),n=moment().zone();return e.zone(n).format("YYYY/M/D H:mm")+"〜"}),Handlebars.registerHelper("getColorClassByDate",function(t){var e=moment(t);return e.isSame(moment(),"day")?"amber lighten-5":e.isBefore(moment(),"day")?"grey lighten-3":""});var t=new e;t.getEventList(),t.getOrganizationList()},t}();t.Main=n}(GCPUG||(GCPUG={})),$(function(){var t=new GCPUG.Main;t.init()});
+/// <reference path="../typings/jquery/jquery.d.ts" />
+/// <reference path="../typings/angularjs/angular.d.ts" />
+/// <reference path="../typings/materialize/materialize.d.ts" />
+/// <reference path="../typings/moment-timezone/moment-timezone.d.ts" />
+var Gcpug;
+(function (Gcpug) {
+    var EventController = (function () {
+        function EventController($scope, $http) {
+            this.$scope = $scope;
+            this.$http = $http;
+            var _this = this;
+            $http.get('/api/1/event?limit=5').success(function (data, status, headers, config) {
+                for (var key in data) {
+                    data[key].status = Gcpug.Filter.getColorClassByDate(data[key].startAt);
+                }
+                _this.items = data;
+            });
+        }
+        return EventController;
+    })();
+    Gcpug.EventController = EventController;
+    var OrganizationController = (function () {
+        function OrganizationController($scope, $http) {
+            this.$scope = $scope;
+            this.$http = $http;
+            var _this = this;
+            $http.get('/api/1/organization').success(function (data, status, headers, config) {
+                _this.items = data;
+            });
+        }
+        return OrganizationController;
+    })();
+    Gcpug.OrganizationController = OrganizationController;
+    var Filter = (function () {
+        function Filter() {
+        }
+        Filter.getColorClassByDate = function (time) {
+            var startAt = moment(time);
+            if (startAt.isSame(moment(), 'day')) {
+                return 'amber lighten-5';
+            }
+            if (startAt.isBefore(moment(), 'day')) {
+                return 'grey lighten-3';
+            }
+            return '';
+        };
+        Filter.formatDatetime = function (time) {
+            var startAt = moment(time);
+            return startAt.format('YYYY/M/D H:mm') + '〜';
+        };
+        return Filter;
+    })();
+    Gcpug.Filter = Filter;
+})(Gcpug || (Gcpug = {}));
+var app = angular.module('Gcpug', []);
+app.controller('EventController', ['$scope', '$http', function ($scope, $http) {
+    return new Gcpug.EventController($scope, $http);
+}]);
+app.controller('OrganizationController', ['$scope', '$http', function ($scope, $http) {
+    return new Gcpug.OrganizationController($scope, $http);
+}]);
+app.filter('formatDatetime', function () {
+    return Gcpug.Filter.formatDatetime;
+});
