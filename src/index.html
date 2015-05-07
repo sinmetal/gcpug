@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="ja" ng-app="Gcpug">
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no"/>
@@ -11,6 +11,7 @@
   <meta property="og:type" content="website" />
   <meta property="og:description" content="GCPUG(ジーシーパグ)はGoogle Cloud Platformを普及させることを目的とし、Googleと共にGCPをより良くし、盛り上げていくユーザーグループです。" />
   <meta property="og:image" content="./images/share.png" />
+  <link rel="icon" type="image/vnd.microsoft.icon" href="images/fav.ico">
 
   <!-- CSS  -->
   <link href="css/materialize.css" type="text/css" rel="stylesheet" media="screen,projection"/>
@@ -49,22 +50,45 @@
       <div class="row">
 
         <div class="col s12 l6">
-          <div class="card-panel">
+          <div class="card-panel" ng-controller="EventController as eventList">
             <div class="icon-block">
               <h2 class="center light-blue-text"><i class="mdi-social-group"></i></h2>
               <h5 class="center">イベント一覧</h5>
               <div class="section" id="event-list">
+                <div class="card ng-cloak" ng-cloak ng-repeat="event in eventList.items">
+                  <div ng-class="['card-content', 'valign-wrapper', event.status]">
+                    <div class="col s12">
+                      <h5 class="left-align">
+                        <a href='{{ event.url }}' class="light-blue-text text-darken-1" target="_blank">{{ event.title }}<i class="tiny mdi-action-launch"></i></a>
+                      </h5>
+                      <p><span class="black-text">{{ event.description }}</span></p>
+                      <label>{{ startAt | formatDatetime }}</label>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
         <div class="col s12 l6">
-          <div class="card-panel">
+          <div class="card-panel" ng-controller="OrganizationController as orgList">
             <div class="icon-block">
               <h2 class="center light-blue-text"><i class="mdi-social-group"></i></h2>
               <h5 class="center">支部一覧</h5>
               <div class="section" id="organization-list">
+
+                <div class="card ng-cloak" ng-cloak  ng-repeat="org in orgList.items">
+                  <div class="card-content valign-wrapper">
+                    <div class="col s2">
+                      <img ng-show="org.logoUrl" ng-src="{{ org.logoUrl }}" alt="{{ org.name }}" class="responsive-img"> <!-- notice the "circle" class -->
+                    </div>
+                    <div class="col s10">
+                      <h5 class="left-align">{{ org.name }}</h5>
+                    </div>
+                  </div>
+                </div>
+
               </div>
             </div>
           </div>
@@ -146,11 +170,9 @@
 
 <!--  Scripts-->
 <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
-<script src="js/lib/handlebars.min.js"></script>
+<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.14/angular.min.js"></script>
 <script src="js/lib/materialize.js"></script>
-<!-- <script src="js/lib/moment-with-locales.min.js"></script> -->
 <script src="js/lib/moment.min.js"></script>
-<!-- <script src="js/init.js"></script> -->
 <script src="js/main.js"></script>
 
 </body>

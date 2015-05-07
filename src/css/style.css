@@ -6,6 +6,10 @@
  * Made By MaterializeCSS.com
  */
 
+[ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak {
+    display: none !important;
+}
+
 .icon-block {
   padding: 0 15px;
 }

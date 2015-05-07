@@ -1,92 +1,68 @@
 /// <reference path="../typings/jquery/jquery.d.ts" />
+/// <reference path="../typings/angularjs/angular.d.ts" />
 /// <reference path="../typings/materialize/materialize.d.ts" />
-/// <reference path="../typings/handlebars/handlebars.d.ts" />
 /// <reference path="../typings/moment-timezone/moment-timezone.d.ts" />
-/// <reference path="../typings/es6-promise/es6-promise.d.ts" />
-module GCPUG {
 
-	export class Api {
-		getTemplate(name : string) {
-			return new Promise(function(resolve) {
-				if ($('#template-' + name).length === 0) {
-					$.ajax({
-						method : 'get',
-						url : '/template/' + name + '.html',
-						dataType : 'text',
-						success : function (data, status, jqXHR) {
-							$('body').append(data);
-							resolve('success');
-						}
-					});
-				} else {
-					resolve('success');
-				}
-			});
-		}
+module Gcpug {
 
-		getEventList() {
-			var getTemplate = this.getTemplate('event-list');
-			getTemplate.then(function() {
-				$.ajax({
-					method : 'get',
-					url : '/api/1/event?limit=5',
-					success : function (data, status, jqXHR) {
-						var source = $('#template-event-list').html();
-						var template = Handlebars.compile(source);
-						var html = template({list:data});
-						$('#event-list').append(html);
+	export class EventController {
+		constructor(private $scope : ng.IScope, private $http : ng.IHttpService) {
+			var _this = this;
+				$http.get('/api/1/event?limit=5')
+				.success(function(data, status, headers, config) {
+					for(var key in data) {
+						data[key].status = Gcpug.Filter.getColorClassByDate(data[key].startAt);
 					}
+					_this.items = data;
 				});
-			});
-		}
 
-		getOrganizationList() {
-			var getTemplate = this.getTemplate('organization-list');
-			getTemplate.then(function() {
-				$.ajax({
-					method : 'get',
-					url : '/api/1/organization',
-					success : function (data, status, jqXHR) {
-						var source = $('#template-organization-list').html();
-						var template = Handlebars.compile(source);
-						var html = template({list:data});
-						$('#organization-list').append(html);
-					}
-				});
-			});
 		}
+		items : {};
 	}
 
-	export class Main {
-		init() {
-			$('.button-collapse').sideNav();
-
-			Handlebars.registerHelper('formatDatetime', function(time : string) {
-				var startAt = moment(time);
-				var zone = moment().zone();
-				return startAt.zone(zone).format('YYYY/M/D H:mm')+'〜';
-			});
-
-			Handlebars.registerHelper('getColorClassByDate', function(time : string) {
-				var startAt = moment(time);
-				if ( startAt.isSame(moment(), 'day') ) {
-					return 'amber lighten-5';
-				}
-				if ( startAt.isBefore(moment(), 'day') ) {
-					return 'grey lighten-3';
-				}
-				return '';
-			});
-
-			var api = new Api();
-			api.getEventList();
-			api.getOrganizationList();
+	export class OrganizationController {
+		constructor(private $scope : ng.IScope, private $http : ng.IHttpService) {
+			var _this = this;
+			$http.get('/api/1/organization')
+				.success(function(data, status, headers, config) {
+					_this.items = data;
+				});
 		}
+		items : {};
 	}
 
+	export interface TopInterface extends ng.IModule {}
+
+	export class Filter {
+
+		static getColorClassByDate(time : string) {
+			var startAt = moment(time);
+			if ( startAt.isSame(moment(), 'day') ) {
+				return 'amber lighten-5';
+			}
+			if ( startAt.isBefore(moment(), 'day') ) {
+				return 'grey lighten-3';
+			}
+			return '';
+		}
+
+		static formatDatetime(time : string) {
+			var startAt = moment(time);
+			return startAt.format('YYYY/M/D H:mm')+'〜';
+		}
+	}
 }
 
-$(function() {
-	var main = new GCPUG.Main();
-	main.init();
+var app: Gcpug.TopInterface = angular.module('Gcpug', []);
+
+app.controller('EventController', ['$scope', '$http', function($scope, $http) {
+	return new Gcpug.EventController($scope, $http);
+}]);
+
+app.controller('OrganizationController', ['$scope', '$http', function($scope, $http) {
+	return new Gcpug.OrganizationController($scope, $http);
+}]);
+
+app.filter('formatDatetime', function() {
+	return Gcpug.Filter.formatDatetime;
 });
