@@ -19,7 +19,8 @@ module Gcpug {
 
         static formatDatetime(time : string) {
             var startAt = moment(time);
-            return startAt.format('YYYY/M/D H:mm')+'〜';
+            var zone = moment().utcOffset();
+            return startAt.utcOffset(zone).format('YYYY/M/D H:mm')+'〜';
         }
     }
 }
