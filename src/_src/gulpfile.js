@@ -5,9 +5,12 @@ var uglify = require('gulp-uglify');
 var plumber = require('gulp-plumber');
 
 gulp.task('typescript', function() {
-	return gulp.src('typescript/*.ts')
+	return gulp.src('typescript/**/**.ts')
 		.pipe(plumber())
-		.pipe(typescript())
+		.pipe(typescript({
+			out : 'main.js',
+			removeComments : true
+		}))
 		//.pipe(uglify())
 		.pipe(gulp.dest('../js'));
 });
