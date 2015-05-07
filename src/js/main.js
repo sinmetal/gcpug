@@ -1,7 +1,3 @@
-/// <reference path="../typings/jquery/jquery.d.ts" />
-/// <reference path="../typings/angularjs/angular.d.ts" />
-/// <reference path="../typings/materialize/materialize.d.ts" />
-/// <reference path="../typings/moment-timezone/moment-timezone.d.ts" />
 var Gcpug;
 (function (Gcpug) {
     var EventController = (function () {
@@ -11,7 +7,7 @@ var Gcpug;
             var _this = this;
             $http.get('/api/1/event?limit=5').success(function (data, status, headers, config) {
                 for (var key in data) {
-                    data[key].status = Gcpug.Filter.getColorClassByDate(data[key].startAt);
+                    data[key].status = Gcpug.EventFilter.getColorClassByDate(data[key].startAt);
                 }
                 _this.items = data;
             });
@@ -19,6 +15,9 @@ var Gcpug;
         return EventController;
     })();
     Gcpug.EventController = EventController;
+})(Gcpug || (Gcpug = {}));
+var Gcpug;
+(function (Gcpug) {
     var OrganizationController = (function () {
         function OrganizationController($scope, $http) {
             this.$scope = $scope;
@@ -31,10 +30,13 @@ var Gcpug;
         return OrganizationController;
     })();
     Gcpug.OrganizationController = OrganizationController;
-    var Filter = (function () {
-        function Filter() {
+})(Gcpug || (Gcpug = {}));
+var Gcpug;
+(function (Gcpug) {
+    var EventFilter = (function () {
+        function EventFilter() {
         }
-        Filter.getColorClassByDate = function (time) {
+        EventFilter.getColorClassByDate = function (time) {
             var startAt = moment(time);
             if (startAt.isSame(moment(), 'day')) {
                 return 'amber lighten-5';
@@ -44,13 +46,13 @@ var Gcpug;
             }
             return '';
         };
-        Filter.formatDatetime = function (time) {
+        EventFilter.formatDatetime = function (time) {
             var startAt = moment(time);
             return startAt.format('YYYY/M/D H:mm') + '〜';
         };
-        return Filter;
+        return EventFilter;
     })();
-    Gcpug.Filter = Filter;
+    Gcpug.EventFilter = EventFilter;
 })(Gcpug || (Gcpug = {}));
 var app = angular.module('Gcpug', []);
 app.controller('EventController', ['$scope', '$http', function ($scope, $http) {
@@ -60,5 +62,5 @@ app.controller('OrganizationController', ['$scope', '$http', function ($scope, $
     return new Gcpug.OrganizationController($scope, $http);
 }]);
 app.filter('formatDatetime', function () {
-    return Gcpug.Filter.formatDatetime;
+    return Gcpug.EventFilter.formatDatetime;
 });
