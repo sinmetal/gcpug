@@ -8,20 +8,27 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/mjibson/goon"
+	"appengine"
+	"appengine/aetest"
 
-	"github.com/sinmetal/gaego_unittest_util/aetestutil"
+	"github.com/mjibson/goon"
 )
 
 type PugConfigTester struct {
 }
 
 func TestPostPugConfig(t *testing.T) {
-	inst, c, err := aetestutil.SpinUp()
+	t.Parallel()
+
+	opt := &aetest.Options{AppID: "unittest", StronglyConsistentDatastore: true}
+	inst, err := aetest.NewInstance(opt)
+	defer inst.Close()
+	req, err := inst.NewRequest("GET", "/", nil)
 	if err != nil {
-		t.Fatal(err)
+		t.Fatal("fatal new request error : %s", err.Error())
 	}
-	defer aetestutil.SpinDown()
+
+	c := appengine.NewContext(req)
 
 	g := goon.FromContext(c)
 
@@ -35,7 +42,6 @@ func TestPostPugConfig(t *testing.T) {
 	}
 
 	m := web.New()
-	route(m)
 	ts := httptest.NewServer(m)
 	defer ts.Close()
 
@@ -77,11 +83,17 @@ func TestPostPugConfig(t *testing.T) {
 }
 
 func TestGetPugConfig(t *testing.T) {
-	_, c, err := aetestutil.SpinUp()
+	t.Parallel()
+
+	opt := &aetest.Options{AppID: "unittest", StronglyConsistentDatastore: true}
+	inst, err := aetest.NewInstance(opt)
+	defer inst.Close()
+	req, err := inst.NewRequest("GET", "/", nil)
 	if err != nil {
-		t.Fatal(err)
+		t.Fatal("fatal new request error : %s", err.Error())
 	}
-	defer aetestutil.SpinDown()
+
+	c := appengine.NewContext(req)
 
 	g := goon.FromContext(c)
 
