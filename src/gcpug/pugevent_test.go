@@ -12,9 +12,8 @@ import (
 	"github.com/zenazn/goji/web"
 
 	"appengine"
+	"appengine/aetest"
 	"github.com/mjibson/goon"
-
-	"github.com/sinmetal/gaego_unittest_util/aetestutil"
 )
 
 type PugEventTester struct {
@@ -68,11 +67,17 @@ func EqualYYYYMMDDHHMMSS(t1 time.Time, t2 time.Time) bool {
 }
 
 func TestPostPugEvent(t *testing.T) {
-	inst, c, err := aetestutil.SpinUp()
+	t.Parallel()
+
+	opt := &aetest.Options{AppID: "unittest", StronglyConsistentDatastore: true}
+	inst, err := aetest.NewInstance(opt)
+	defer inst.Close()
+	req, err := inst.NewRequest("GET", "/", nil)
 	if err != nil {
-		t.Fatal(err)
+		t.Fatal("fatal new request error : %s", err.Error())
 	}
-	defer aetestutil.SpinDown()
+
+	c := appengine.NewContext(req)
 
 	g := goon.FromContext(c)
 
@@ -144,11 +149,17 @@ func TestPostPugEvent(t *testing.T) {
 }
 
 func TestPugEventSave(t *testing.T) {
-	_, c, err := aetestutil.SpinUp()
+	t.Parallel()
+
+	opt := &aetest.Options{AppID: "unittest", StronglyConsistentDatastore: true}
+	inst, err := aetest.NewInstance(opt)
+	defer inst.Close()
+	req, err := inst.NewRequest("GET", "/", nil)
 	if err != nil {
-		t.Fatal(err)
+		t.Fatal("fatal new request error : %s", err.Error())
 	}
-	defer aetestutil.SpinDown()
+
+	c := appengine.NewContext(req)
 
 	g := goon.FromContext(c)
 
@@ -197,11 +208,17 @@ func TestPugEventSave(t *testing.T) {
 }
 
 func TestListPugEvent(t *testing.T) {
-	inst, c, err := aetestutil.SpinUp()
+	t.Parallel()
+
+	opt := &aetest.Options{AppID: "unittest", StronglyConsistentDatastore: true}
+	inst, err := aetest.NewInstance(opt)
+	defer inst.Close()
+	req, err := inst.NewRequest("GET", "/", nil)
 	if err != nil {
-		t.Fatal(err)
+		t.Fatal("fatal new request error : %s", err.Error())
 	}
-	defer aetestutil.SpinDown()
+
+	c := appengine.NewContext(req)
 
 	ot := OrganizationTester{}
 	o, err := ot.MakeDefaultOrganization(c)

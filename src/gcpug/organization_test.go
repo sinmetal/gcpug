@@ -10,9 +10,8 @@ import (
 	"time"
 
 	"appengine"
+	"appengine/aetest"
 	"github.com/mjibson/goon"
-
-	"github.com/sinmetal/gaego_unittest_util/aetestutil"
 )
 
 type OrganizationTester struct {
@@ -35,11 +34,17 @@ func (t *OrganizationTester) MakeDefaultOrganization(c appengine.Context) (Organ
 }
 
 func TestDoGetOrganization(t *testing.T) {
-	inst, c, err := aetestutil.SpinUp()
+	t.Parallel()
+
+	opt := &aetest.Options{AppID: "unittest", StronglyConsistentDatastore: true}
+	inst, err := aetest.NewInstance(opt)
+	defer inst.Close()
+	req, err := inst.NewRequest("GET", "/", nil)
 	if err != nil {
-		t.Fatal(err)
+		t.Fatal("fatal new request error : %s", err.Error())
 	}
-	defer aetestutil.SpinDown()
+
+	c := appengine.NewContext(req)
 
 	g := goon.FromContext(c)
 
@@ -94,11 +99,17 @@ func TestDoGetOrganization(t *testing.T) {
 }
 
 func TestDoGetOrganizationList(t *testing.T) {
-	inst, c, err := aetestutil.SpinUp()
+	t.Parallel()
+
+	opt := &aetest.Options{AppID: "unittest", StronglyConsistentDatastore: true}
+	inst, err := aetest.NewInstance(opt)
+	defer inst.Close()
+	req, err := inst.NewRequest("GET", "/", nil)
 	if err != nil {
-		t.Fatal(err)
+		t.Fatal("fatal new request error : %s", err.Error())
 	}
-	defer aetestutil.SpinDown()
+
+	c := appengine.NewContext(req)
 
 	g := goon.FromContext(c)
 
@@ -189,11 +200,17 @@ func TestDoGetOrganizationList(t *testing.T) {
 }
 
 func TestPostOrganization(t *testing.T) {
-	inst, c, err := aetestutil.SpinUp()
+	t.Parallel()
+
+	opt := &aetest.Options{AppID: "unittest", StronglyConsistentDatastore: true}
+	inst, err := aetest.NewInstance(opt)
+	defer inst.Close()
+	req, err := inst.NewRequest("GET", "/", nil)
 	if err != nil {
-		t.Fatal(err)
+		t.Fatal("fatal new request error : %s", err.Error())
 	}
-	defer aetestutil.SpinDown()
+
+	c := appengine.NewContext(req)
 
 	g := goon.FromContext(c)
 
@@ -257,11 +274,17 @@ func TestPostOrganization(t *testing.T) {
 }
 
 func TestPutOrganization(t *testing.T) {
-	inst, c, err := aetestutil.SpinUp()
+	t.Parallel()
+
+	opt := &aetest.Options{AppID: "unittest", StronglyConsistentDatastore: true}
+	inst, err := aetest.NewInstance(opt)
+	defer inst.Close()
+	req, err := inst.NewRequest("GET", "/", nil)
 	if err != nil {
-		t.Fatal(err)
+		t.Fatal("fatal new request error : %s", err.Error())
 	}
-	defer aetestutil.SpinDown()
+
+	c := appengine.NewContext(req)
 
 	g := goon.FromContext(c)
 
