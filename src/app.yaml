@@ -23,5 +23,8 @@ handlers:
   static_dir: js
 - url: /font
   static_dir: font
+- url: /admin/.*
+  script: _go_app
+  login: admin
 - url: /.*
   script: _go_app
