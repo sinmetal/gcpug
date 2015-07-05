@@ -2,6 +2,7 @@ package gcpug
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -20,6 +21,7 @@ import (
 	"golang.org/x/oauth2/google"
 	gauth "google.golang.org/api/oauth2/v2"
 
+	"code.google.com/p/go-uuid/uuid"
 	plus "google.golang.org/api/plus/v1"
 )
 
@@ -39,6 +41,7 @@ type requestParam struct {
 
 const (
 	randStateForAuthToMemcacheKey = "randStateForAuthToMemcacheKey"
+	pubAuthTokenCookie            = "PugAuthToken"
 )
 
 type Member struct {
@@ -57,6 +60,12 @@ type Member struct {
 	BlogLink    string    `json:"blogLink" datastore:",noindex"`    // Blog Link
 	CreatedAt   time.Time `json:"createdAt"`                        // 作成日時
 	UpdatedAt   time.Time `json:"updatedAt"`                        // 更新日時
+}
+
+type PugAuthToken struct {
+	AuthToken string `datastore:"-" goon:"id"` // AuthToken
+	Email     string `datastore:",noindex"`    // Member.Email
+	Expire    time.Time
 }
 
 type MemberApi struct {
@@ -95,6 +104,53 @@ func (a *MemberApi) getConfig(r *http.Request) (*oauth2.Config, error) {
 
 func (a *MemberApi) Login(c web.C, w http.ResponseWriter, r *http.Request) {
 	ac := appengine.NewContext(r)
+
+	cookie, err := r.Cookie(pubAuthTokenCookie)
+	if err == nil {
+		g := goon.NewGoon(r)
+		at := &PugAuthToken{
+			AuthToken: cookie.Value,
+		}
+		err = at.GetStillValid(g)
+		if err == nil {
+			m := &Member{
+				Email: at.Email,
+			}
+			err = m.Get(g)
+			if err == nil {
+				if at.Expire.After(time.Now().Add(12 * time.Hour)) {
+					nat := &PugAuthToken{}
+					err = nat.PutNewToken(g, m.Email)
+					if err != nil {
+						er := ErrorResponse{
+							http.StatusInternalServerError,
+							[]string{"pug auth token put error"},
+						}
+						er.Write(w)
+						return
+					}
+
+					cookie := &http.Cookie{
+						Name:    pubAuthTokenCookie,
+						Value:   nat.AuthToken,
+						Path:    "/",
+						Expires: nat.Expire,
+						Secure:  !appengine.IsDevAppServer(),
+					}
+					http.SetCookie(w, cookie)
+				}
+
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(http.StatusOK)
+				json.NewEncoder(w).Encode(m)
+				return
+			} else {
+				ac.Warningf("member get error, %v", err)
+			}
+		} else {
+			ac.Warningf("pug auth token get error, %v", err)
+		}
+	}
 
 	config, err := a.getConfig(r)
 	if err != nil {
@@ -211,10 +267,25 @@ func (a *MemberApi) OAuth2Callback(c web.C, w http.ResponseWriter, r *http.Reque
 		PlusLink:    ui.Link,
 		PictureLink: ui.Picture,
 	}
+
+	at := &PugAuthToken{}
 	g := goon.NewGoon(r)
-	err = m.PutByLogin(g)
+	err = g.RunInTransaction(func(g *goon.Goon) error {
+		err = m.PutByLogin(g)
+		if err != nil {
+			log.Errorf(ac, "member put error, %v", err)
+			return err
+		}
+
+		err = at.PutNewToken(g, ui.Email)
+		if err != nil {
+			log.Errorf(ac, "pugAuthToken put error %v", err)
+			return err
+		}
+
+		return nil
+	}, &datastore.TransactionOptions{XG: true})
 	if err != nil {
-		log.Errorf(ac, "member put error, %v", err)
 		er := ErrorResponse{
 			http.StatusInternalServerError,
 			[]string{"member put error"},
@@ -223,42 +294,53 @@ func (a *MemberApi) OAuth2Callback(c web.C, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	cookie := &http.Cookie{
+		Name:    pubAuthTokenCookie,
+		Value:   at.AuthToken,
+		Path:    "/",
+		Expires: at.Expire,
+		Secure:  !appengine.IsDevAppServer(),
+	}
+
 	w.Header().Set("Content-Type", "application/json")
+	http.SetCookie(w, cookie)
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(m)
 }
 
 func (m *Member) PutByLogin(g *goon.Goon) error {
-	return g.RunInTransaction(func(g *goon.Goon) error {
-		stored := &Member{
-			Email: m.Email,
-		}
-		err := g.Get(stored)
-		if err == nil {
-			stored.Name = m.Name
-			stored.FamilyName = m.FamilyName
-			stored.GivenName = m.GivenName
-			stored.PictureLink = m.PictureLink
-			stored.PlusLink = m.PlusLink
+	stored := &Member{
+		Email: m.Email,
+	}
+	err := g.Get(stored)
+	if err == nil {
+		stored.Name = m.Name
+		stored.FamilyName = m.FamilyName
+		stored.GivenName = m.GivenName
+		stored.PictureLink = m.PictureLink
+		stored.PlusLink = m.PlusLink
 
-			_, err = g.Put(stored)
-			if err != nil {
-				return err
-			}
-			*m = *stored
-
-			return nil
-		} else if err == datastore.ErrNoSuchEntity {
-			_, err = g.Put(m)
-			if err != nil {
-				return err
-			}
-
-			return nil
-		} else {
+		_, err = g.Put(stored)
+		if err != nil {
 			return err
 		}
-	}, nil)
+		*m = *stored
+
+		return nil
+	} else if err == datastore.ErrNoSuchEntity {
+		_, err = g.Put(m)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	} else {
+		return err
+	}
+}
+
+func (m *Member) Get(g *goon.Goon) error {
+	return g.Get(m)
 }
 
 func (m *Member) Load(c <-chan datastore.Property) error {
@@ -279,6 +361,26 @@ func (m *Member) Save(c chan<- datastore.Property) error {
 
 	if err := datastore.SaveStruct(m, c); err != nil {
 		return err
+	}
+	return nil
+}
+
+func (at *PugAuthToken) PutNewToken(g *goon.Goon, email string) error {
+	at.AuthToken = uuid.New()
+	at.Email = email
+	at.Expire = time.Now().Add(30 * time.Hour)
+	_, err := g.Put(at)
+	return err
+}
+
+func (at *PugAuthToken) GetStillValid(g *goon.Goon) error {
+	err := g.Get(at)
+	if err != nil {
+		if at.Expire.Before(time.Now()) {
+			return errors.New("token expiration. user email = " + at.Email)
+		}
+	} else {
+		return nil
 	}
 	return nil
 }
