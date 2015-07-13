@@ -1,8 +1,8 @@
 var gulp = require('gulp');
-var compass = require('gulp-compass');
+var sass = require('gulp-sass');
 var typescript = require('gulp-typescript');
-var uglify = require('gulp-uglify');
 var plumber = require('gulp-plumber');
+var bourbon = require('node-bourbon');
 
 gulp.task('typescript', function() {
 	return gulp.src('typescript/**/**.ts')
@@ -11,30 +11,19 @@ gulp.task('typescript', function() {
 			out : 'main.js',
 			removeComments : true
 		}))
-		//.pipe(uglify())
 		.pipe(gulp.dest('../js'));
 });
 
-gulp.task('compass', function() {
-	gulp.src('sass/*.scss')
-		.pipe(plumber())
-		.pipe(compass({
-			config_file: './config.rb',
-			css: '../css',
-			sass: 'sass',
-			comments: false
-		}));
+gulp.task('sass', function() {
 	gulp.src('sass/materialize/*.scss')
+		.pipe(sass({
+			includePaths: bourbon.includePaths
+		}))
 		.pipe(plumber())
-		.pipe(compass({
-			config_file: './config.rb',
-			css: '../css',
-			sass: 'sass/materialize',
-			comments: false
-		}));
-});
+		.pipe(gulp.dest('../css'));
+})
 
-gulp.task('watch', [ 'typescript',  'compass'], function() {
+gulp.task('watch', [ 'typescript',  'sass'], function() {
 	 gulp.watch('typescript/**', ['typescript']);
-	gulp.watch('sass/**', ['compass']);
+	gulp.watch('sass/**', ['sass']);
 });
