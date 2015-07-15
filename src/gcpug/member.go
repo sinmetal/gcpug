@@ -262,8 +262,8 @@ func (a *MemberApi) OAuth2Callback(c web.C, w http.ResponseWriter, r *http.Reque
 		Email:       ui.Email,
 		Id:          ui.Id,
 		Name:        ui.Name,
-		FamilyName:  ui.Family_name,
-		GivenName:   ui.Given_name,
+		FamilyName:  ui.FamilyName,
+		GivenName:   ui.GivenName,
 		PlusLink:    ui.Link,
 		PictureLink: ui.Picture,
 	}
