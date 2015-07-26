@@ -35,6 +35,7 @@ func SetUpPugEvent(m *web.Mux) {
 
 	m.Get("/api/1/event", api.List)
 	m.Post("/api/1/event", api.Post)
+	m.Put("/api/1/event", api.Put)
 }
 
 func (a *PugEventApi) Post(c web.C, w http.ResponseWriter, r *http.Request) {
@@ -74,6 +75,47 @@ func (a *PugEventApi) Post(c web.C, w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(e)
+}
+
+func (a *PugEventApi) Put(c web.C, w http.ResponseWriter, r *http.Request) {
+	ac := appengine.NewContext(r)
+
+	var e PugEvent
+	err := json.NewDecoder(r.Body).Decode(&e)
+	if err != nil {
+		ac.Infof("request decode error : %s", err.Error())
+		er := ErrorResponse{
+			http.StatusBadRequest,
+			[]string{"invalid request"},
+		}
+		er.Write(w)
+		return
+	}
+	defer r.Body.Close()
+
+	err = e.Validate4Put()
+	if err != nil {
+		er := ErrorResponse{
+			http.StatusBadRequest,
+			[]string{err.Error()},
+		}
+		er.Write(w)
+		return
+	}
+
+	err = e.Update(ac)
+	if err != nil {
+		er := ErrorResponse{
+			http.StatusNotFound,
+			[]string{err.Error()},
+		}
+		er.Write(w)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(e)
 }
 
@@ -136,6 +178,45 @@ func (pe *PugEvent) Validate() error {
 		return errors.New("title is required.")
 	}
 	return nil
+}
+
+func (pe *PugEvent) Validate4Put() error {
+	if pe.Id == "" {
+		return errors.New("id is required.")
+	}
+	return pe.Validate()
+}
+
+func (pe *PugEvent) Get(c appengine.Context) error {
+	g := goon.FromContext(c)
+	return g.Get(pe)
+}
+
+func (pe *PugEvent) Update(c appengine.Context) error {
+	g := goon.FromContext(c)
+	err := g.RunInTransaction(func(g *goon.Goon) error {
+		stored := &PugEvent{
+			Id: pe.Id,
+		}
+		err := g.Get(stored)
+		if err != nil {
+			return err
+		}
+
+		pe.CreatedAt = stored.CreatedAt
+
+		_, err = g.Put(pe)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}, nil)
+	if err != nil {
+		c.Infof("%v", pe)
+	}
+
+	return err
 }
 
 func (pe *PugEvent) Load(c <-chan datastore.Property) error {
