@@ -216,6 +216,11 @@ func (pe *PugEvent) Update(c appengine.Context) error {
 		c.Infof("%v", pe)
 	}
 
+	j, err := json.Marshal(pe)
+	if err != nil {
+		c.Warningf("json marshal error, %s", pe.Id)
+	}
+	c.Infof("{\"__DS__KIND__PUGEVENT__\":%s}", j)
 	return err
 }
 
