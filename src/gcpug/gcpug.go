@@ -24,6 +24,7 @@ func init() {
 	SetUpPugEvent(m)
 	SetUpPugConfig(m)
 	SetUpMember(m)
+	SetUpCollector(m)
 
 	goji.Serve()
 }

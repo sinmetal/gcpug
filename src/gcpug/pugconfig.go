@@ -17,6 +17,7 @@ type PugConfig struct {
 	Id           string    `datastore:"-" goon:"id" json:"id"`        // pug-config-id 固定
 	ClientId     string    `json:"clientId" datastore:",noindex"`     // GCP Client Id
 	ClientSecret string    `json:"clientSecret" datastore:",noindex"` // GCP Client Secret
+	SlackPostUrl string    `json:"slackPostUrl" datastore:",noindex"` // Slackにぶっこむ用URL
 	CreatedAt    time.Time `json:"createdAt"`                         // 作成日時
 	UpdatedAt    time.Time `json:"updatedAt"`                         // 更新日時
 }

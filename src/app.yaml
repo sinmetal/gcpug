@@ -29,5 +29,8 @@ handlers:
 - url: /admin/.*
   script: _go_app
   login: admin
+- url: /cron/.*
+  script: _go_app
+  login: admin
 - url: /.*
   script: _go_app
