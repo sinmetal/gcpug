@@ -17,7 +17,7 @@ import (
 type PugConfigTester struct {
 }
 
-func TestPostPugConfig(t *testing.T) {
+func TestPugConfigPost(t *testing.T) {
 	t.Parallel()
 
 	opt := &aetest.Options{AppID: "unittest", StronglyConsistentDatastore: true}
@@ -35,6 +35,7 @@ func TestPostPugConfig(t *testing.T) {
 	con := &PugConfig{
 		ClientId:     "hoge-clinet-id",
 		ClientSecret: "hoge-client-secret",
+		SlackPostUrl: "http://example.com",
 	}
 	b, err := json.Marshal(con)
 	if err != nil {
@@ -66,6 +67,9 @@ func TestPostPugConfig(t *testing.T) {
 	if rpc.ClientSecret != con.ClientSecret {
 		t.Fatalf("unexpected pugConfig.ClinetSecret, %s != %s", rpc.ClientSecret, con.ClientSecret)
 	}
+	if rpc.SlackPostUrl != con.SlackPostUrl {
+		t.Fatalf("unexpceted pugConfig.SlackPostUrl, %s != %s", rpc.SlackPostUrl, con.SlackPostUrl)
+	}
 	if rpc.CreatedAt.IsZero() {
 		t.Fatalf("unexpected pugConfig.createdAt, IsZero")
 	}
@@ -82,7 +86,7 @@ func TestPostPugConfig(t *testing.T) {
 	}
 }
 
-func TestGetPugConfig(t *testing.T) {
+func TestPugConfigGet(t *testing.T) {
 	t.Parallel()
 
 	opt := &aetest.Options{AppID: "unittest", StronglyConsistentDatastore: true}
@@ -101,6 +105,7 @@ func TestGetPugConfig(t *testing.T) {
 		Id:           pugConfigId,
 		ClientId:     "hoge-clinet-id",
 		ClientSecret: "hoge-client-secret",
+		SlackPostUrl: "http://example.com",
 	}
 	_, err = g.Put(con)
 	if err != nil {
@@ -120,6 +125,9 @@ func TestGetPugConfig(t *testing.T) {
 	}
 	if pc.ClientSecret != con.ClientSecret {
 		t.Fatalf("unexpected pugConfig.ClinetSecret, %s != %s", pc.ClientSecret, con.ClientSecret)
+	}
+	if pc.SlackPostUrl != con.SlackPostUrl {
+		t.Fatalf("unexpected pugConfig.SlackPostUrl, %s != %s", pc.SlackPostUrl, con.SlackPostUrl)
 	}
 	if pc.CreatedAt.IsZero() {
 		t.Fatalf("unexpected pugConfig.createdAt, IsZero")
