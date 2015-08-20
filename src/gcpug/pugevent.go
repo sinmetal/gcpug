@@ -124,7 +124,7 @@ func (a *PugEventApi) List(c web.C, w http.ResponseWriter, r *http.Request) {
 	g := goon.FromContext(ac)
 
 	q := datastore.NewQuery(goon.DefaultKindName(&PugEvent{}))
-	q = q.Order("-CreatedAt")
+	q = q.Order("-StartAt")
 
 	eok := r.FormValue("organizationKey")
 	if eok != "" {
@@ -213,7 +213,8 @@ func (pe *PugEvent) Update(c appengine.Context) error {
 		return nil
 	}, nil)
 	if err != nil {
-		c.Infof("%v", pe)
+		c.Warningf("%v", pe)
+		return err
 	}
 
 	j, err := json.Marshal(pe)
