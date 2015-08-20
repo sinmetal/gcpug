@@ -213,7 +213,8 @@ func (pe *PugEvent) Update(c appengine.Context) error {
 		return nil
 	}, nil)
 	if err != nil {
-		c.Infof("%v", pe)
+		c.Warningf("%v", pe)
+		return err
 	}
 
 	j, err := json.Marshal(pe)
