@@ -12,9 +12,8 @@ import (
 	"github.com/zenazn/goji/web"
 
 	"appengine"
+	"appengine/aetest"
 	"github.com/mjibson/goon"
-
-	"github.com/sinmetal/gaego_unittest_util/aetestutil"
 )
 
 type PugEventTester struct {
@@ -68,11 +67,17 @@ func EqualYYYYMMDDHHMMSS(t1 time.Time, t2 time.Time) bool {
 }
 
 func TestPostPugEvent(t *testing.T) {
-	inst, c, err := aetestutil.SpinUp()
+	t.Parallel()
+
+	opt := &aetest.Options{AppID: "unittest", StronglyConsistentDatastore: true}
+	inst, err := aetest.NewInstance(opt)
+	defer inst.Close()
+	req, err := inst.NewRequest("GET", "/", nil)
 	if err != nil {
-		t.Fatal(err)
+		t.Fatal("fatal new request error : %s", err.Error())
 	}
-	defer aetestutil.SpinDown()
+
+	c := appengine.NewContext(req)
 
 	g := goon.FromContext(c)
 
@@ -94,7 +99,6 @@ func TestPostPugEvent(t *testing.T) {
 	}
 
 	m := web.New()
-	route(m)
 	ts := httptest.NewServer(m)
 	defer ts.Close()
 
@@ -144,12 +148,219 @@ func TestPostPugEvent(t *testing.T) {
 	}
 }
 
-func TestPugEventSave(t *testing.T) {
-	_, c, err := aetestutil.SpinUp()
+func TestPutPugEventBadRequest(t *testing.T) {
+	t.Parallel()
+
+	opt := &aetest.Options{AppID: "unittest", StronglyConsistentDatastore: true}
+	inst, err := aetest.NewInstance(opt)
+	defer inst.Close()
+	_, err = inst.NewRequest("GET", "/", nil)
+	if err != nil {
+		t.Fatal("fatal new request error : %s", err.Error())
+	}
+
+	o := &Organization{
+		Id: "organizationId",
+	}
+
+	pe := &PugEvent{
+		OrganizationId: o.Id,
+		Title:          "GAEハンズオン",
+		Description:    "初心者のためのGAEハンズオン！",
+		Url:            "http://example.com",
+		StartAt:        time.Now(),
+	}
+
+	b, err := json.Marshal(pe)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer aetestutil.SpinDown()
+
+	m := web.New()
+	ts := httptest.NewServer(m)
+	defer ts.Close()
+
+	r, err := inst.NewRequest("PUT", ts.URL+"/api/1/event", bytes.NewReader(b))
+	if err != nil {
+		t.Error(err.Error())
+	}
+	w := httptest.NewRecorder()
+	http.DefaultServeMux.ServeHTTP(w, r)
+	if w.Code != http.StatusBadRequest {
+		t.Fatalf("unexpected status code : %d, %s", w.Code, w.Body)
+	}
+
+	var messages []string
+	err = json.NewDecoder(w.Body).Decode(&messages)
+	if err != nil {
+		t.Fatalf("unexpected response body")
+	}
+	if messages[0] != "id is required." {
+		t.Fatalf("unexpected response body")
+	}
+}
+
+func TestPutPugEventNothing(t *testing.T) {
+	t.Parallel()
+
+	opt := &aetest.Options{AppID: "unittest", StronglyConsistentDatastore: true}
+	inst, err := aetest.NewInstance(opt)
+	defer inst.Close()
+	_, err = inst.NewRequest("GET", "/", nil)
+	if err != nil {
+		t.Fatal("fatal new request error : %s", err.Error())
+	}
+
+	o := &Organization{
+		Id: "organizationId",
+	}
+
+	pe := &PugEvent{
+		Id:             "nothingid",
+		OrganizationId: o.Id,
+		Title:          "GAEハンズオン",
+		Description:    "初心者のためのGAEハンズオン！",
+		Url:            "http://example.com",
+		StartAt:        time.Now(),
+	}
+
+	b, err := json.Marshal(pe)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	m := web.New()
+	ts := httptest.NewServer(m)
+	defer ts.Close()
+
+	r, err := inst.NewRequest("PUT", ts.URL+"/api/1/event", bytes.NewReader(b))
+	if err != nil {
+		t.Error(err.Error())
+	}
+	w := httptest.NewRecorder()
+	http.DefaultServeMux.ServeHTTP(w, r)
+	if w.Code != http.StatusNotFound {
+		t.Fatalf("unexpected status code : %d, %s", w.Code, w.Body)
+	}
+
+	var messages []string
+	err = json.NewDecoder(w.Body).Decode(&messages)
+	if err != nil {
+		t.Fatalf("unexpected response body : %s")
+	}
+	if messages[0] != "datastore: no such entity" {
+		t.Fatalf("unexpected response body")
+	}
+}
+
+func TestPutPugEvent(t *testing.T) {
+	t.Parallel()
+
+	opt := &aetest.Options{AppID: "unittest", StronglyConsistentDatastore: true}
+	inst, err := aetest.NewInstance(opt)
+	defer inst.Close()
+	req, err := inst.NewRequest("GET", "/", nil)
+	if err != nil {
+		t.Fatal("fatal new request error : %s", err.Error())
+	}
+
+	c := appengine.NewContext(req)
+
+	g := goon.FromContext(c)
+
+	o := &Organization{
+		Id: "organizationId",
+	}
+
+	data := &PugEvent{
+		Id:             "testevent",
+		OrganizationId: o.Id,
+		Title:          "GAEハンズオン",
+		Description:    "初心者のためのGAEハンズオン！",
+		Url:            "http://example.com",
+		StartAt:        time.Now(),
+	}
+	err = data.Create(c)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	pe := &PugEvent{
+		Id:             data.Id,
+		OrganizationId: o.Id,
+		Title:          "GAEハンズオン-new",
+		Description:    "上級者のためのGAE",
+		Url:            "https://example.com?gae=gae",
+		StartAt:        time.Now(),
+	}
+
+	b, err := json.Marshal(pe)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	m := web.New()
+	ts := httptest.NewServer(m)
+	defer ts.Close()
+
+	r, err := inst.NewRequest("PUT", ts.URL+"/api/1/event", bytes.NewReader(b))
+	if err != nil {
+		t.Error(err.Error())
+	}
+	w := httptest.NewRecorder()
+	http.DefaultServeMux.ServeHTTP(w, r)
+	if w.Code != http.StatusOK {
+		t.Fatalf("unexpected status code : %d, %s", w.Code, w.Body)
+	}
+
+	var re PugEvent
+	err = json.NewDecoder(w.Body).Decode(&re)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if re.Id != pe.Id {
+		t.Fatalf("unexpected pug event id, %s != %s", re.Id, pe.Id)
+	}
+	if re.Title != pe.Title {
+		t.Fatalf("unexpected pug event title, %s != %s", re.Title, pe.Title)
+	}
+	if re.Description != pe.Description {
+		t.Fatalf("unexpected pug event description, %s != %s", re.Description, pe.Description)
+	}
+	if re.OrganizationId != pe.OrganizationId {
+		t.Fatalf("unexpected pug event organization id, %v != %v", re.OrganizationId, pe.OrganizationId)
+	}
+	if re.StartAt != pe.StartAt {
+		t.Fatalf("unexpected pug envet start at, %s != %s", re.StartAt, pe.StartAt)
+	}
+	if re.CreatedAt == data.CreatedAt {
+		t.Fatalf("unexpected pug event created at, %s != %s", re.CreatedAt, pe.CreatedAt)
+	}
+	if re.UpdatedAt.Unix() > data.UpdatedAt.Unix() {
+		t.Fatalf("unexpected pug event updated at, %s != %s", re.UpdatedAt, pe.UpdatedAt)
+	}
+
+	stored := &PugEvent{
+		Id: re.Id,
+	}
+	err = g.Get(stored)
+	if err != nil {
+		t.Fatalf("unexpected datastore pug event, %s", err.Error())
+	}
+}
+
+func TestPugEventSave(t *testing.T) {
+	t.Parallel()
+
+	opt := &aetest.Options{AppID: "unittest", StronglyConsistentDatastore: true}
+	inst, err := aetest.NewInstance(opt)
+	defer inst.Close()
+	req, err := inst.NewRequest("GET", "/", nil)
+	if err != nil {
+		t.Fatal("fatal new request error : %s", err.Error())
+	}
+
+	c := appengine.NewContext(req)
 
 	g := goon.FromContext(c)
 
@@ -198,11 +409,17 @@ func TestPugEventSave(t *testing.T) {
 }
 
 func TestListPugEvent(t *testing.T) {
-	inst, c, err := aetestutil.SpinUp()
+	t.Parallel()
+
+	opt := &aetest.Options{AppID: "unittest", StronglyConsistentDatastore: true}
+	inst, err := aetest.NewInstance(opt)
+	defer inst.Close()
+	req, err := inst.NewRequest("GET", "/", nil)
 	if err != nil {
-		t.Fatal(err)
+		t.Fatal("fatal new request error : %s", err.Error())
 	}
-	defer aetestutil.SpinDown()
+
+	c := appengine.NewContext(req)
 
 	ot := OrganizationTester{}
 	o, err := ot.MakeDefaultOrganization(c)
@@ -222,7 +439,6 @@ func TestListPugEvent(t *testing.T) {
 	}
 
 	m := web.New()
-	route(m)
 	ts := httptest.NewServer(m)
 	defer ts.Close()
 

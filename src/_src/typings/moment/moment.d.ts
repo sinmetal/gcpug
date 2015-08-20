@@ -238,6 +238,10 @@ declare module moment {
         daysInMonth(): number;
         isDST(): boolean;
 
+        utcOffset(): number;
+        utcOffset(b: number, keepLocalTime?: boolean): Moment;
+        utcOffset(b: string, keepLocalTime?: boolean): Moment;
+
         isBefore(): boolean;
         isBefore(b: Moment): boolean;
         isBefore(b: string): boolean;
