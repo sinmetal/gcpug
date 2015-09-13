@@ -8,7 +8,16 @@ module Gcpug {
 
         constructor(private $scope:ng.IScope, private $http:ng.IHttpService) {
             var _this = this;
-            $http.get('/api/1/event?limit=5')
+            _this.items = [];
+            _this.getEvents(10);
+        }
+
+        getEvents(limit: number) {
+            if (!limit) {
+                limit = 10;
+            }
+            var _this = this;
+            _this.$http.get('/api/1/event?limit=' + limit)
                 .success(function (data, status, headers, config) {
                     for (var key in data) {
                         data[key].status = Gcpug.EventFilter.getColorClassByDate(data[key].startAt);
@@ -17,6 +26,7 @@ module Gcpug {
                 });
         }
 
-        items:{};
+        items:any[];
+
     }
 }
