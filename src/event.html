@@ -1,9 +1,17 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="ja" ng-app="Gcpug">
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no"/>
-  <title>イベント情報 | GCPUG | Google Cloud Platform ユーザーグループ</title>
+  <title>GCPUG | Google Cloud Platform ユーザーグループ</title>
+  <meta name="title" content="Google Cloud Platform ユーザーグループ" />
+  <meta name="keywords" content="Google Cloud Platform,GCP,ユーザーグループ" />
+  <meta name="description" content="GCPUG(ジーシーパグ)はGoogle Cloud Platformを普及させることを目的とし、Googleと共にGCPをより良くし、盛り上げていくユーザーグループです。" />
+  <meta property="og:title" content="Google Cloud Platform ユーザーグループ" />
+  <meta property="og:type" content="website" />
+  <meta property="og:description" content="GCPUG(ジーシーパグ)はGoogle Cloud Platformを普及させることを目的とし、Googleと共にGCPをより良くし、盛り上げていくユーザーグループです。" />
+  <meta property="og:image" content="./images/share.png" />
+  <link rel="icon" type="image/vnd.microsoft.icon" href="images/fav.ico">
 
   <!-- CSS  -->
   <link href="css/materialize.css" type="text/css" rel="stylesheet" media="screen,projection"/>
@@ -15,236 +23,77 @@
   <nav class="orange" role="navigation">
     <div class="container">
       <div class="nav-wrapper">
-        <a href="#" data-activates="nav-mobile" class="button-collapse"><i class="mdi-navigation-menu"></i></a>
+        <div class="col s12">
+          <a href="/" class="brand-logo">GCPUG</a>
+          <a href="#" data-activates="nav-mobile" class="button-collapse"><i class="mdi-navigation-menu"></i></a>
+        </div>
       </div>
     </div>
   </nav>
   <ul id="nav-mobile" class="side-nav fixed">
     <li class="logo center">
-      <a href="#" class="brand-logo"><img src="./images/logo_box.png" alt="GCPUG"></a>
+      <a href="/" class="brand-logo"><img src="./images/logo_box.png" alt="GCPUG"></a>
     </li>
-    <li><a href="#">HOME</a></li>
-    <li><a href="#">GCPUGについて</a></li>
-    <li><a href="#" class="active">イベント情報</a></li>
-    <li><a href="#">支部一覧</a></li>
+    <li><a href="/" class="active">HOME</a></li>
+    <li><a href="/about">ABOUT</a></li>
+    <li><a href="/event" class="active">EVENT</a></li>
+    <li><a href="/join">JOIN</a></li>
   </ul>
 </header>
 
 <main>
-<div class="row">
-  <div class="container">
-    <div class="section">
+
+  <div class="row">
+    <div class="container">
+      <div class="section">
 
 
-      <div class="row">
+        <div class="row">
 
-        <!-- About GCPUG -->
-        <div class="col s12 l">
-          <!--
-          <div class="card">
-            <div class="card-image">
-              <img src="./images/background.jpg">
-              <span class="card-title">About GCPUG</span>
-            </div>
-            <div class="card-content">
-              <p>GCPUG(ジーシーパグ)はGoogle Cloud Platformを普及させることを目的とし、Googleと共にGCPをより良くし、盛り上げていくユーザーグループです。私たちに共感していただける方なら、GCPUGへの参加は自由です。一緒に GCP を盛り上げていきましょう。</p>
-            </div>
-          </div>
-          -->
-
-          <div class="card-panel">
-            <div class="icon-block">
-              <h2 class="center light-blue-text"><i class="mdi-image-flash-on"></i></h2>
-              <h5 class="center">イベント情報</h5>
-
-              <div class="divider"></div>
-
-              <p class="light">全国各地で開催しているGCPUGのイベント情報です。</p>
-
-              <div class="collection">
-                <a href="#!" class="collection-item"><span class="new badge">2015/02/22</span> 第2回GCPUG東京開催します。</a>
-                <a href="#!" class="collection-item">Alvin</a>
-                <a href="#!" class="collection-item">Alvin</a>
-                <a href="#!" class="collection-item">Alvin</a>
-              </div>
-            </div>
-
-            <div class="divider"></div>
-
-            <form>
-              <h5 class="center">支部作成フォーム</h5>
-              <div class="row">
-                <div class="input-field col s6">
-                  <input id="first_name" type="text" class="validate">
-                  <label for="first_name">姓</label>
-                </div>
-                <div class="input-field col s6">
-                  <input id="last_name" type="text" class="validate">
-                  <label for="last_name">名</label>
+          <div class="col s12">
+            <div class="card-panel" ng-controller="EventController as eventList">
+              <div class="icon-block">
+                <h2 class="center light-blue-text"><i class="mdi-social-group"></i></h2>
+                <h5 class="center">イベント一覧</h5>
+                <div class="section" id="event-list">
+                  <div class="card ng-cloak" ng-cloak ng-repeat="event in eventList.items">
+                    <div ng-class="['card-content', 'valign-wrapper', event.status]">
+                      <div class="col s12">
+                        <h5 class="left-align">
+                          <a href='{{ event.url }}' class="light-blue-text text-darken-1" target="_blank">{{ event.title }}<i class="tiny mdi-action-launch"></i></a>
+                        </h5>
+                        <p><span class="black-text">{{ event.description }}</span></p>
+                        <label>{{ event.startAt | formatDatetime }}</label>
+                      </div>
+                    </div>
+                  </div>
+                  <div><a class="waves-effect waves-light btn" ng-click="eventList.getEvents(100)">Read More</a></div>
                 </div>
               </div>
-              <div class="row">
-                <div class="input-field col s12">
-                  <input id="username" type="text" class="validate">
-                  <label for="username">ユーザーネーム</label>
-                </div>
-              </div>
-              <div class="row">
-                <div class="input-field col s12">
-                  <input id="email" type="email" class="validate">
-                  <label for="email">メールアドレス</label>
-                </div>
-              </div>
-            </form>
-          </div>
-        </div>
-
-        <!-- Members Start -->
-        <div class="col s12 l6">
-          <div class="card-panel z-depth-1">
-            <div class="row">
-              <h2 class="center light-blue-text"><i class="mdi-social-group"></i></h2>
-              <h5 class="center">支部メンバー</h5>
-              <div class="col s4">
-                <img src="images/sinmetal.png" alt="" class="circle responsive-img">
-                <p class="center-align">sinmetal Zenyo</p>
-              </div>
-
-              <div class="col s4">
-                <img src="images/sinmetal.png" alt="" class="circle responsive-img">
-                <p class="center-align">sinmetal Takeshi</p>
-              </div>
-
-              <div class="col s4">
-                <img src="images/sinmetal.png" alt="" class="circle responsive-img">
-                <p class="center-align">sinmetal</p>
-              </div>
-
-              <div class="row"></div>
-
-              <div class="col s4">
-                <img src="images/sinmetal.png" alt="" class="circle responsive-img">
-                <p class="center-align">sinmetal</p>
-              </div>
-
-              <div class="col s4">
-                <img src="images/sinmetal.png" alt="" class="circle responsive-img">
-                <p class="center-align">sinmetal</p>
-              </div>
-
-              <div class="col s4">
-                <img src="images/sinmetal.png" alt="" class="circle responsive-img">
-                <p class="center-align">sinmetal</p>
-              </div>
             </div>
           </div>
+
         </div>
-
-        <!-- Groups Start -->
-        <div class="col s12 l6">
-          <div class="card-panel">
-            <div class="icon-block">
-              <h2 class="center light-blue-text"><i class="mdi-social-group"></i></h2>
-              <h5 class="center">支部紹介</h5>
-
-              <p class="light">By utilizing elements and principles of Material Design, we were able to create a framework that incorporates components and animations that provide more feedback to users. Additionally, a single underlying responsive system across all platforms allow for a more unified user experience.</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Google Groups Start -->
-        <div class="col s12 l6">
-          <div class="card-panel">
-            <div class="icon-block">
-              <h2 class="center light-blue-text"><i class="mdi-image-flash-on"></i></h2>
-              <h5 class="center">Google Groups</h5>
-
-              <p class="light">GCPUGユーザー会のGroupsへ参加するにはこちら。</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="col s12 l6">
-          <div class="card-panel">
-            <div class="icon-block">
-              <h2 class="center light-blue-text"><i class="mdi-social-group"></i></h2>
-              <h5 class="center">Twitter</h5>
-
-              <p class="light">By utilizing elements and principles of Material Design, we were able to create a framework that incorporates components and animations that provide more feedback to users. Additionally, a single underlying responsive system across all platforms allow for a more unified user experience.</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- StackOverflow Start -->
-        <div class="col s12 l12">
-          <div class="card-panel">
-            <div class="icon-block">
-              <h2 class="center light-blue-text"><i class="mdi-communication-forum green-text"></i></h2>
-              <h5 class="center">StackOverflow に関する会話に参加</h5>
-              <p class="light">質問への回答をもらったり、他のデベロッパーと知識を共有したりできます。</p>
-
-              <div class="row">
-                <a class="waves-effect waves-light btn light-green"><i class="mdi-action-open-in-new right"></i>App Engine</a>
-                <a class="waves-effect waves-light btn light-green"><i class="mdi-action-open-in-new right"></i>Compute Engine</a>
-                <a class="waves-effect waves-light btn light-green"><i class="mdi-action-open-in-new right"></i>Cloud SQL</a>
-                <a class="waves-effect waves-light btn light-green"><i class="mdi-action-open-in-new right"></i>BigQuery</a>
-                <a class="waves-effect waves-light btn light-green"><i class="mdi-action-open-in-new right"></i>Cloud Storage</a>
-                <a class="waves-effect waves-light btn light-green"><i class="mdi-action-open-in-new right"></i>Cloud Datastore</a>
-                <a class="waves-effect waves-light btn light-green"><i class="mdi-action-open-in-new right"></i>Prediction API</a>
-                <a class="waves-effect waves-light btn light-green"><i class="mdi-action-open-in-new right"></i>Translate API</a>
-                <a class="waves-effect waves-light btn light-green"><i class="mdi-action-open-in-new right"></i>Cloud Endpoints</a>
-              </div>
-            </div>
-          </div>
-        </div>
-
       </div>
     </div>
   </div>
-</div>
 </main>
 
 <footer class="page-footer orange">
   <div class="container">
     <div class="row">
-      <div class="col l6 s12">
+      <div class="col l12 s12">
         <h5 class="white-text"><i class="mdi-device-dvr"></i> About GCPUG</h5>
         <p class="grey-text text-lighten-4">GCPUG(ジーシーパグ)はGoogle Cloud Platformを普及させることを目的とし、Googleと共にGCPをより良くし、盛り上げていくユーザーグループです。私たちに共感していただける方なら、GCPUGへの参加は自由です。一緒に GCP を盛り上げていきましょう。</p>
-        <a href="" class="btn orange darken-3 waves-effect waves-light"><i class="mdi-navigation-chevron-right right"></i>もっと知りたい</a>
-        <a href="" class="btn orange darken-3 waves-effect waves-light"><i class="mdi-navigation-chevron-right right"></i>新しい支部を作りたい</a>
       </div>
 
-      <div class="col l3 s12">
-        <h5 class="white-text"><i class="mdi-action-assessment"></i> Events</h5>
-        <ul>
-          <li><a class="white-text" href="#!">Link 1</a></li>
-          <li><a class="white-text" href="#!">Link 2</a></li>
-          <li><a class="white-text" href="#!">Link 3</a></li>
-          <li><a class="white-text" href="#!">Link 4</a></li>
-        </ul>
-        <a href="" class="btn orange lighten-2 waves-effect waves-light">
-          <i class="mdi-navigation-chevron-right right"></i>もっと見る
-        </a>
-      </div>
-
-      <div class="col l3 s12">
-        <h5 class="white-text"><i class="mdi-social-group"></i> Groups</h5>
-        <ul>
-          <li><a class="white-text" href="#!"><i class="mdi-navigation-chevron-right"></i> 東京支部</a></li>
-          <li><a class="white-text" href="#!"><i class="mdi-navigation-chevron-right"></i> 名古屋支部</a></li>
-          <li><a class="white-text" href="#!"><i class="mdi-navigation-chevron-right"></i> 沖縄支部</a></li>
-        </ul>
-        <a href="" class="btn orange lighten-2 waves-effect waves-light">
-          <i class="mdi-navigation-chevron-right left"></i>もっと見る
-        </a>
-      </div>
 
     </div>
   </div>
   <div class="footer-copyright">
     <div class="container">
       <div class="row">
-        Copyright(C)2015 GCPUG All Rights Reserved.
+        Copyright(C)2015 GCPUG All Rights Reserved. <label class="orange-text text-lighten-3">Powered By Google App Engine for Go.</label>
         <span class="right">Made by <a class="orange-text text-lighten-3" target="_blank" href="http://materializecss.com">Materialize</a></span>
       </div>
     </div>
@@ -254,8 +103,10 @@
 
 <!--  Scripts-->
 <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.14/angular.min.js"></script>
 <script src="js/lib/materialize.js"></script>
-<script src="js/init.js"></script>
+<script src="js/lib/moment.min.js"></script>
+<script src="js/main.js"></script>
 
 </body>
 </html>

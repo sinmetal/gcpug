@@ -5,13 +5,21 @@ var Gcpug;
             this.$scope = $scope;
             this.$http = $http;
             var _this = this;
-            $http.get('/api/1/event?limit=5').success(function (data, status, headers, config) {
+            _this.items = [];
+            _this.getEvents(10);
+        }
+        EventController.prototype.getEvents = function (limit) {
+            if (!limit) {
+                limit = 10;
+            }
+            var _this = this;
+            _this.$http.get('/api/1/event?limit=' + limit).success(function (data, status, headers, config) {
                 for (var key in data) {
                     data[key].status = Gcpug.EventFilter.getColorClassByDate(data[key].startAt);
                 }
                 _this.items = data;
             });
-        }
+        };
         return EventController;
     })();
     Gcpug.EventController = EventController;

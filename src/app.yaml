@@ -13,6 +13,9 @@ handlers:
 - url: /about
   static_files: about.html
   upload: about.html
+- url: /event
+  static_files: event.html
+  upload: event.html
 - url: /join
   static_files: join.html
   upload: join.html
