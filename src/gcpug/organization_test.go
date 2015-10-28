@@ -3,22 +3,22 @@ package gcpug
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/zenazn/goji/web"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
 
-	"appengine"
-	"appengine/aetest"
 	"github.com/mjibson/goon"
+	"github.com/zenazn/goji/web"
+
+	"google.golang.org/appengine/aetest"
 )
 
 type OrganizationTester struct {
 }
 
-func (t *OrganizationTester) MakeDefaultOrganization(c appengine.Context) (Organization, error) {
-	g := goon.FromContext(c)
+func (t *OrganizationTester) MakeDefaultOrganization(r *http.Request) (Organization, error) {
+	g := goon.NewGoon(r)
 
 	o := Organization{
 		"sampleId",
@@ -44,9 +44,7 @@ func TestDoGetOrganization(t *testing.T) {
 		t.Fatal("fatal new request error : %s", err.Error())
 	}
 
-	c := appengine.NewContext(req)
-
-	g := goon.FromContext(c)
+	g := goon.NewGoon(req)
 
 	o := &Organization{
 		"sampleId",
@@ -109,9 +107,7 @@ func TestDoGetOrganizationList(t *testing.T) {
 		t.Fatal("fatal new request error : %s", err.Error())
 	}
 
-	c := appengine.NewContext(req)
-
-	g := goon.FromContext(c)
+	g := goon.NewGoon(req)
 
 	o2 := &Organization{
 		"sampleId2",
@@ -210,9 +206,7 @@ func TestPostOrganization(t *testing.T) {
 		t.Fatal("fatal new request error : %s", err.Error())
 	}
 
-	c := appengine.NewContext(req)
-
-	g := goon.FromContext(c)
+	g := goon.NewGoon(req)
 
 	o := &Organization{
 		Id:      "sampleId",
@@ -284,9 +278,7 @@ func TestPutOrganization(t *testing.T) {
 		t.Fatal("fatal new request error : %s", err.Error())
 	}
 
-	c := appengine.NewContext(req)
-
-	g := goon.FromContext(c)
+	g := goon.NewGoon(req)
 
 	old := &Organization{
 		Id:   "sampleId",

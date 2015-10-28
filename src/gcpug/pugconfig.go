@@ -8,9 +8,10 @@ import (
 
 	"github.com/zenazn/goji/web"
 
-	"appengine"
-	"appengine/datastore"
 	"github.com/mjibson/goon"
+	"google.golang.org/appengine"
+	"google.golang.org/appengine/datastore"
+	"google.golang.org/appengine/log"
 )
 
 type PugConfig struct {
@@ -39,13 +40,13 @@ func SetUpPugConfig(m *web.Mux) {
 }
 
 func (a *PugConfigApi) Put(c web.C, w http.ResponseWriter, r *http.Request) {
-	ac := appengine.NewContext(r)
-	g := goon.FromContext(ac)
+	ctx := appengine.NewContext(r)
+	g := goon.NewGoon(r)
 
 	var pc PugConfig
 	err := json.NewDecoder(r.Body).Decode(&pc)
 	if err != nil {
-		ac.Infof("rquest body, %v", r.Body)
+		log.Infof(ctx, "rquest body, %v", r.Body)
 		er := ErrorResponse{
 			http.StatusBadRequest,
 			[]string{"invalid request"},
@@ -62,7 +63,7 @@ func (a *PugConfigApi) Put(c web.C, w http.ResponseWriter, r *http.Request) {
 			http.StatusInternalServerError,
 			[]string{err.Error()},
 		}
-		ac.Errorf(fmt.Sprintf("datastore put error : ", err.Error()))
+		log.Errorf(ctx, fmt.Sprintf("datastore put error : ", err.Error()))
 		er.Write(w)
 		return
 	}
@@ -72,9 +73,7 @@ func (a *PugConfigApi) Put(c web.C, w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(pc)
 }
 
-func (s *PugConfigService) Get(ac appengine.Context) (PugConfig, error) {
-	g := goon.FromContext(ac)
-
+func (s *PugConfigService) Get(g *goon.Goon) (PugConfig, error) {
 	pc := PugConfig{
 		Id: pugConfigId,
 	}
@@ -83,15 +82,14 @@ func (s *PugConfigService) Get(ac appengine.Context) (PugConfig, error) {
 	return pc, err
 }
 
-func (pc *PugConfig) Load(c <-chan datastore.Property) error {
-	if err := datastore.LoadStruct(pc, c); err != nil {
+func (pc *PugConfig) Load(ps []datastore.Property) error {
+	if err := datastore.LoadStruct(pc, ps); err != nil {
 		return err
 	}
-
 	return nil
 }
 
-func (pc *PugConfig) Save(c chan<- datastore.Property) error {
+func (pc *PugConfig) Save() ([]datastore.Property, error) {
 	now := time.Now()
 	pc.UpdatedAt = now
 
@@ -99,8 +97,5 @@ func (pc *PugConfig) Save(c chan<- datastore.Property) error {
 		pc.CreatedAt = now
 	}
 
-	if err := datastore.SaveStruct(pc, c); err != nil {
-		return err
-	}
-	return nil
+	return datastore.SaveStruct(pc)
 }

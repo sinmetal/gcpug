@@ -6,11 +6,14 @@ import (
 	"net/http"
 	"time"
 
+	"golang.org/x/net/context"
+
 	"github.com/zenazn/goji/web"
 
-	"appengine"
-	"appengine/datastore"
 	"github.com/mjibson/goon"
+	"google.golang.org/appengine"
+	"google.golang.org/appengine/datastore"
+	"google.golang.org/appengine/log"
 )
 
 // Organization
@@ -39,7 +42,7 @@ func SetUpOrganization(m *web.Mux) {
 }
 
 func (a *OrganizationApi) Get(c web.C, w http.ResponseWriter, r *http.Request) {
-	ac := appengine.NewContext(r)
+	ctx := appengine.NewContext(r)
 
 	id := c.URLParams["id"]
 	if id == "" {
@@ -52,7 +55,7 @@ func (a *OrganizationApi) Get(c web.C, w http.ResponseWriter, r *http.Request) {
 	}
 
 	o := &Organization{Id: id}
-	err := o.Get(ac)
+	err := o.Get(ctx)
 	if err == datastore.ErrNoSuchEntity {
 		er := ErrorResponse{
 			http.StatusNotFound,
@@ -65,7 +68,7 @@ func (a *OrganizationApi) Get(c web.C, w http.ResponseWriter, r *http.Request) {
 			http.StatusInternalServerError,
 			[]string{err.Error()},
 		}
-		ac.Errorf(fmt.Sprintf("datastore get error : ", err.Error()))
+		log.Errorf(ctx, fmt.Sprintf("datastore get error : ", err.Error()))
 		er.Write(w)
 		return
 	}
@@ -76,8 +79,8 @@ func (a *OrganizationApi) Get(c web.C, w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *OrganizationApi) List(c web.C, w http.ResponseWriter, r *http.Request) {
-	ac := appengine.NewContext(r)
-	g := goon.FromContext(ac)
+	ctx := appengine.NewContext(r)
+	g := goon.FromContext(ctx)
 
 	q := datastore.NewQuery(goon.DefaultKindName(&Organization{})).
 		Order("Order")
@@ -85,7 +88,7 @@ func (a *OrganizationApi) List(c web.C, w http.ResponseWriter, r *http.Request) 
 	os := make([]*Organization, 0)
 	_, err := g.GetAll(q, &os)
 	if err != nil {
-		ac.Errorf(err.Error())
+		log.Errorf(ctx, err.Error())
 		er := ErrorResponse{
 			http.StatusInternalServerError,
 			[]string{"datastore query error"},
@@ -100,12 +103,12 @@ func (a *OrganizationApi) List(c web.C, w http.ResponseWriter, r *http.Request) 
 }
 
 func (a *OrganizationApi) Post(c web.C, w http.ResponseWriter, r *http.Request) {
-	ac := appengine.NewContext(r)
+	ctx := appengine.NewContext(r)
 
 	var o Organization
 	err := json.NewDecoder(r.Body).Decode(&o)
 	if err != nil {
-		ac.Infof("rquest body, %v", r.Body)
+		log.Infof(ctx, "rquest body, %v", r.Body)
 		er := ErrorResponse{
 			http.StatusBadRequest,
 			[]string{"invalid request"},
@@ -115,7 +118,7 @@ func (a *OrganizationApi) Post(c web.C, w http.ResponseWriter, r *http.Request) 
 	}
 	defer r.Body.Close()
 
-	err = o.Create(ac)
+	err = o.Create(ctx)
 	if err == ConflictKey {
 		er := ErrorResponse{
 			http.StatusBadRequest,
@@ -128,7 +131,7 @@ func (a *OrganizationApi) Post(c web.C, w http.ResponseWriter, r *http.Request) 
 			http.StatusInternalServerError,
 			[]string{err.Error()},
 		}
-		ac.Errorf(fmt.Sprintf("datastore put error : ", err.Error()))
+		log.Errorf(ctx, fmt.Sprintf("datastore put error : ", err.Error()))
 		er.Write(w)
 		return
 	}
@@ -139,12 +142,12 @@ func (a *OrganizationApi) Post(c web.C, w http.ResponseWriter, r *http.Request) 
 }
 
 func (a *OrganizationApi) Put(c web.C, w http.ResponseWriter, r *http.Request) {
-	ac := appengine.NewContext(r)
+	ctx := appengine.NewContext(r)
 
 	var o Organization
 	err := json.NewDecoder(r.Body).Decode(&o)
 	if err != nil {
-		ac.Infof("rquest body, %v", r.Body)
+		log.Infof(ctx, "rquest body, %v", r.Body)
 		er := ErrorResponse{
 			http.StatusBadRequest,
 			[]string{"invalid request"},
@@ -154,13 +157,13 @@ func (a *OrganizationApi) Put(c web.C, w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	err = o.Update(ac)
+	err = o.Update(ctx)
 	if err != nil {
 		er := ErrorResponse{
 			http.StatusInternalServerError,
 			[]string{err.Error()},
 		}
-		ac.Errorf(fmt.Sprintf("datastore put error : ", err.Error()))
+		log.Errorf(ctx, fmt.Sprintf("datastore put error : ", err.Error()))
 		er.Write(w)
 		return
 	}
@@ -170,12 +173,12 @@ func (a *OrganizationApi) Put(c web.C, w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(o)
 }
 
-func (o *Organization) Get(c appengine.Context) error {
+func (o *Organization) Get(c context.Context) error {
 	g := goon.FromContext(c)
 	return g.Get(o)
 }
 
-func (o *Organization) Create(c appengine.Context) error {
+func (o *Organization) Create(c context.Context) error {
 	g := goon.FromContext(c)
 	return g.RunInTransaction(func(g *goon.Goon) error {
 		stored := &Organization{
@@ -195,7 +198,7 @@ func (o *Organization) Create(c appengine.Context) error {
 	}, nil)
 }
 
-func (o *Organization) Update(c appengine.Context) error {
+func (o *Organization) Update(c context.Context) error {
 	g := goon.FromContext(c)
 	return g.RunInTransaction(func(g *goon.Goon) error {
 		stored := &Organization{
@@ -209,7 +212,7 @@ func (o *Organization) Update(c appengine.Context) error {
 		o.CreatedAt = stored.CreatedAt
 		o.UpdatedAt = stored.UpdatedAt
 
-		c.Infof("new name %s", o.Name)
+		log.Infof(c, "new name %s", o.Name)
 		_, err = g.Put(o)
 		if err != nil {
 			return err
@@ -219,15 +222,14 @@ func (o *Organization) Update(c appengine.Context) error {
 	}, nil)
 }
 
-func (o *Organization) Load(c <-chan datastore.Property) error {
-	if err := datastore.LoadStruct(o, c); err != nil {
+func (o *Organization) Load(ps []datastore.Property) error {
+	if err := datastore.LoadStruct(o, ps); err != nil {
 		return err
 	}
-
 	return nil
 }
 
-func (o *Organization) Save(c chan<- datastore.Property) error {
+func (o *Organization) Save() ([]datastore.Property, error) {
 	now := time.Now()
 	o.UpdatedAt = now
 
@@ -235,8 +237,5 @@ func (o *Organization) Save(c chan<- datastore.Property) error {
 		o.CreatedAt = now
 	}
 
-	if err := datastore.SaveStruct(o, c); err != nil {
-		return err
-	}
-	return nil
+	return datastore.SaveStruct(o)
 }

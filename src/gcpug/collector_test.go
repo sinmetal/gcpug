@@ -1,8 +1,8 @@
 package gcpug
 
 import (
-	"appengine"
-	"appengine/aetest"
+	"google.golang.org/appengine"
+	"google.golang.org/appengine/aetest"
 	"testing"
 	"time"
 )
