@@ -9,13 +9,11 @@ import (
 
 	"github.com/zenazn/goji/web"
 
-	"appengine"
-	"appengine/datastore"
-	"appengine/memcache"
 	"github.com/mjibson/goon"
-	gengine "google.golang.org/appengine"
+	"google.golang.org/appengine"
+	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/log"
-	gmemcache "google.golang.org/appengine/memcache"
+	"google.golang.org/appengine/memcache"
 
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
@@ -79,10 +77,9 @@ func SetUpMember(m *web.Mux) {
 }
 
 func (a *MemberApi) getConfig(r *http.Request) (*oauth2.Config, error) {
-	ac := appengine.NewContext(r)
-
+	g := goon.NewGoon(r)
 	pcs := &PugConfigService{}
-	config, err := pcs.Get(ac)
+	config, err := pcs.Get(g)
 	if err != nil {
 		return &oauth2.Config{}, err
 	}
@@ -103,7 +100,7 @@ func (a *MemberApi) getConfig(r *http.Request) (*oauth2.Config, error) {
 }
 
 func (a *MemberApi) Login(c web.C, w http.ResponseWriter, r *http.Request) {
-	ac := appengine.NewContext(r)
+	ctx := appengine.NewContext(r)
 
 	cookie, err := r.Cookie(pubAuthTokenCookie)
 	if err == nil {
@@ -145,16 +142,16 @@ func (a *MemberApi) Login(c web.C, w http.ResponseWriter, r *http.Request) {
 				json.NewEncoder(w).Encode(m)
 				return
 			} else {
-				ac.Warningf("member get error, %v", err)
+				log.Warningf(ctx, "member get error, %v", err)
 			}
 		} else {
-			ac.Warningf("pug auth token get error, %v", err)
+			log.Warningf(ctx, "pug auth token get error, %v", err)
 		}
 	}
 
 	config, err := a.getConfig(r)
 	if err != nil {
-		ac.Errorf("pug config get error, %v", err)
+		log.Errorf(ctx, "pug config get error, %v", err)
 		er := ErrorResponse{
 			http.StatusInternalServerError,
 			[]string{"config get error"},
@@ -165,20 +162,20 @@ func (a *MemberApi) Login(c web.C, w http.ResponseWriter, r *http.Request) {
 
 	randState := fmt.Sprintf("st%d", time.Now().UnixNano())
 	authUrl := config.AuthCodeURL(randState)
-	ac.Infof("auth url = %s", authUrl)
+	log.Infof(ctx, "auth url = %s", authUrl)
 
 	item := &memcache.Item{
 		Key:        fmt.Sprintf("%s-_-%s", randStateForAuthToMemcacheKey, randState),
 		Value:      []byte(randState),
 		Expiration: 3 * time.Minute,
 	}
-	memcache.Add(ac, item)
+	memcache.Add(ctx, item)
 
 	http.Redirect(w, r, authUrl, http.StatusFound)
 }
 
 func (a *MemberApi) OAuth2Callback(c web.C, w http.ResponseWriter, r *http.Request) {
-	ac := gengine.NewContext(r)
+	ctx := appengine.NewContext(r)
 
 	p := &requestParam{
 		r.Host,
@@ -196,14 +193,14 @@ func (a *MemberApi) OAuth2Callback(c web.C, w http.ResponseWriter, r *http.Reque
 
 	_, err := json.Marshal(p)
 	if err != nil {
-		log.Errorf(ac, "handler error: %#v", err)
+		log.Errorf(ctx, "handler error: %#v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	config, err := a.getConfig(r)
 	if err != nil {
-		log.Errorf(ac, "pug config get error, %v", err)
+		log.Errorf(ctx, "pug config get error, %v", err)
 		er := ErrorResponse{
 			http.StatusInternalServerError,
 			[]string{"config get error"},
@@ -213,9 +210,9 @@ func (a *MemberApi) OAuth2Callback(c web.C, w http.ResponseWriter, r *http.Reque
 	}
 
 	stateMemKey := fmt.Sprintf("%s-_-%s", randStateForAuthToMemcacheKey, r.FormValue("state"))
-	item, err := gmemcache.Get(ac, stateMemKey)
+	item, err := memcache.Get(ctx, stateMemKey)
 	if err != nil {
-		log.Errorf(ac, "memcache get error, %v", err)
+		log.Errorf(ctx, "memcache get error, %v", err)
 		er := ErrorResponse{
 			http.StatusUnauthorized,
 			[]string{"unauthorized"},
@@ -225,7 +222,7 @@ func (a *MemberApi) OAuth2Callback(c web.C, w http.ResponseWriter, r *http.Reque
 	}
 
 	if r.FormValue("state") != string(item.Value) {
-		log.Warningf(ac, "State doesn't match: req = %#v", "")
+		log.Warningf(ctx, "State doesn't match: req = %#v", "")
 		er := ErrorResponse{
 			http.StatusUnauthorized,
 			[]string{"unauthorized"},
@@ -236,26 +233,26 @@ func (a *MemberApi) OAuth2Callback(c web.C, w http.ResponseWriter, r *http.Reque
 
 	code := r.FormValue("code")
 	if code == "" {
-		log.Errorf(ac, "token not found.")
+		log.Errorf(ctx, "token not found.")
 	}
-	token, err := config.Exchange(ac, code)
+	token, err := config.Exchange(ctx, code)
 	if err != nil {
-		log.Errorf(ac, "Token exchange error: %v", err)
+		log.Errorf(ctx, "Token exchange error: %v", err)
 	}
 	_, err = json.Marshal(&token)
 	if err != nil {
-		log.Errorf(ac, "token json marshal error: %v", err)
+		log.Errorf(ctx, "token json marshal error: %v", err)
 	}
 
-	oauthClient := config.Client(ac, token)
+	oauthClient := config.Client(ctx, token)
 	s, err := gauth.New(oauthClient)
 	if err != nil {
-		log.Errorf(ac, "gauth new error: %v", err)
+		log.Errorf(ctx, "gauth new error: %v", err)
 	}
 	me := gauth.NewUserinfoV2MeService(s)
 	ui, err := me.Get().Do()
 	if err != nil {
-		log.Errorf(ac, "get user info from plus error: %v", err)
+		log.Errorf(ctx, "get user info from plus error: %v", err)
 	}
 
 	m := &Member{
@@ -273,13 +270,13 @@ func (a *MemberApi) OAuth2Callback(c web.C, w http.ResponseWriter, r *http.Reque
 	err = g.RunInTransaction(func(g *goon.Goon) error {
 		err = m.PutByLogin(g)
 		if err != nil {
-			log.Errorf(ac, "member put error, %v", err)
+			log.Errorf(ctx, "member put error, %v", err)
 			return err
 		}
 
 		err = at.PutNewToken(g, ui.Email)
 		if err != nil {
-			log.Errorf(ac, "pugAuthToken put error %v", err)
+			log.Errorf(ctx, "pugAuthToken put error %v", err)
 			return err
 		}
 
@@ -343,15 +340,14 @@ func (m *Member) Get(g *goon.Goon) error {
 	return g.Get(m)
 }
 
-func (m *Member) Load(c <-chan datastore.Property) error {
-	if err := datastore.LoadStruct(m, c); err != nil {
+func (m *Member) Load(ps []datastore.Property) error {
+	if err := datastore.LoadStruct(m, ps); err != nil {
 		return err
 	}
-
 	return nil
 }
 
-func (m *Member) Save(c chan<- datastore.Property) error {
+func (m *Member) Save() ([]datastore.Property, error) {
 	now := time.Now()
 	m.UpdatedAt = now
 
@@ -359,10 +355,7 @@ func (m *Member) Save(c chan<- datastore.Property) error {
 		m.CreatedAt = now
 	}
 
-	if err := datastore.SaveStruct(m, c); err != nil {
-		return err
-	}
-	return nil
+	return datastore.SaveStruct(m)
 }
 
 func (at *PugAuthToken) PutNewToken(g *goon.Goon, email string) error {
