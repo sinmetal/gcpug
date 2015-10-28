@@ -10,11 +10,15 @@ import (
 	"strconv"
 	"time"
 
-	"appengine"
-	"appengine/datastore"
-	"appengine/urlfetch"
+	"golang.org/x/net/context"
+
 	"github.com/mjibson/goon"
 	"github.com/zenazn/goji/web"
+
+	"google.golang.org/appengine"
+	"google.golang.org/appengine/datastore"
+	"google.golang.org/appengine/log"
+	"google.golang.org/appengine/urlfetch"
 )
 
 type StackoverflowResponse struct {
@@ -87,101 +91,102 @@ func SetUpCollector(m *web.Mux) {
 }
 
 func (a *CollectorApi) Get(c web.C, w http.ResponseWriter, r *http.Request) {
-	ac := appengine.NewContext(r)
-	appId := appengine.AppID(ac)
+	ctx := appengine.NewContext(r)
+	appId := appengine.AppID(ctx)
 	if appengine.IsDevAppServer() == false && appId != "gcp-ug" {
-		ac.Infof("do nothing. only run gcp-ug. appId = %s", appId)
+		log.Infof(ctx, "do nothing. only run gcp-ug. appId = %s", appId)
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		w.WriteHeader(http.StatusOK)
 		return
 	}
 
+	g := goon.NewGoon(r)
 	s := &PugConfigService{}
-	pc, err := s.Get(ac)
+	pc, err := s.Get(g)
 	if err != nil {
 		er := ErrorResponse{
 			http.StatusInternalServerError,
 			[]string{err.Error()},
 		}
-		ac.Errorf(fmt.Sprintf("pug config get error : ", err.Error()))
+		log.Errorf(ctx, fmt.Sprintf("pug config get error : ", err.Error()))
 		er.Write(w)
 		return
 	}
 	a.Config = pc
 
-	err = a.PullStackoverflow(ac, "google-app-engine")
+	err = a.PullStackoverflow(ctx, "google-app-engine")
 	if err != nil {
 		er := ErrorResponse{
 			http.StatusInternalServerError,
 			[]string{err.Error()},
 		}
-		ac.Errorf(fmt.Sprintf("pull stackoverflow error : ", err.Error()))
+		log.Errorf(ctx, fmt.Sprintf("pull stackoverflow error : ", err.Error()))
 		er.Write(w)
 		return
 	}
 
-	a.PullStackoverflow(ac, "google-compute-engine")
+	a.PullStackoverflow(ctx, "google-compute-engine")
 	if err != nil {
 		er := ErrorResponse{
 			http.StatusInternalServerError,
 			[]string{err.Error()},
 		}
-		ac.Errorf(fmt.Sprintf("pull stackoverflow error : ", err.Error()))
+		log.Errorf(ctx, fmt.Sprintf("pull stackoverflow error : ", err.Error()))
 		er.Write(w)
 		return
 	}
 
-	a.PullStackoverflow(ac, "google-cloud-sql")
+	a.PullStackoverflow(ctx, "google-cloud-sql")
 	if err != nil {
 		er := ErrorResponse{
 			http.StatusInternalServerError,
 			[]string{err.Error()},
 		}
-		ac.Errorf(fmt.Sprintf("pull stackoverflow error : ", err.Error()))
+		log.Errorf(ctx, fmt.Sprintf("pull stackoverflow error : ", err.Error()))
 		er.Write(w)
 		return
 	}
 
-	a.PullStackoverflow(ac, "google-bigquery")
+	a.PullStackoverflow(ctx, "google-bigquery")
 	if err != nil {
 		er := ErrorResponse{
 			http.StatusInternalServerError,
 			[]string{err.Error()},
 		}
-		ac.Errorf(fmt.Sprintf("pull stackoverflow error : ", err.Error()))
+		log.Errorf(ctx, fmt.Sprintf("pull stackoverflow error : ", err.Error()))
 		er.Write(w)
 		return
 	}
 
-	a.PullStackoverflow(ac, "google-cloud-storage")
+	a.PullStackoverflow(ctx, "google-cloud-storage")
 	if err != nil {
 		er := ErrorResponse{
 			http.StatusInternalServerError,
 			[]string{err.Error()},
 		}
-		ac.Errorf(fmt.Sprintf("pull stackoverflow error : ", err.Error()))
+		log.Errorf(ctx, fmt.Sprintf("pull stackoverflow error : ", err.Error()))
 		er.Write(w)
 		return
 	}
 
-	a.PullStackoverflow(ac, "google-cloud-datastore")
+	a.PullStackoverflow(ctx, "google-cloud-datastore")
 	if err != nil {
 		er := ErrorResponse{
 			http.StatusInternalServerError,
 			[]string{err.Error()},
 		}
-		ac.Errorf(fmt.Sprintf("pull stackoverflow error : ", err.Error()))
+		log.Errorf(ctx, fmt.Sprintf("pull stackoverflow error : ", err.Error()))
 		er.Write(w)
 		return
 	}
 
-	a.PullStackoverflow(ac, "google-cloud-endpoints")
+	a.PullStackoverflow(ctx, "google-cloud-endpoints")
 	if err != nil {
 		er := ErrorResponse{
 			http.StatusInternalServerError,
 			[]string{err.Error()},
 		}
-		ac.Errorf(fmt.Sprintf("pull stackoverflow error : ", err.Error()))
+		log.Errorf(ctx, fmt.Sprintf("pull stackoverflow error : ", err.Error()))
 		er.Write(w)
 		return
 	}
@@ -190,44 +195,42 @@ func (a *CollectorApi) Get(c web.C, w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (a *CollectorApi) PullStackoverflow(ac appengine.Context, tag string) error {
-	ac.Infof("fetch %s start.", tag)
+func (a *CollectorApi) PullStackoverflow(ctx context.Context, tag string) error {
+	log.Infof(ctx, "fetch %s start.", tag)
 
-	client := urlfetch.Client(ac)
+	client := urlfetch.Client(ctx)
 	uri := fmt.Sprintf("https://api.stackexchange.com/2.2/questions?order=desc&sort=activity&tagged=%s&site=ja.stackoverflow", tag)
 	resp, err := client.Get(uri)
 	if err != nil {
-		ac.Errorf("%s", err.Error())
+		log.Errorf(ctx, "%s", err.Error())
 		return err
 	}
 
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 
-	ac.Infof("%s", string(body))
+	log.Infof(ctx, "%s", string(body))
 	if resp.StatusCode != 200 {
 		return errors.New(fmt.Sprintf("stackoverflow error : code = %d", resp.StatusCode))
 	}
 
 	stackArray, err := a.ParseJson(body)
 	if err != nil {
-		ac.Errorf("%s", err.Error())
+		log.Errorf(ctx, "%s", err.Error())
 		return err
 	}
-	ac.Infof("size = %d", len(stackArray))
+	log.Infof(ctx, "size = %d", len(stackArray))
 
 	for _, stack := range stackArray {
-		g := goon.FromContext(ac)
-		err = g.RunInTransaction(func(g *goon.Goon) error {
-			stored := &Stackoverflow{
-				QuestionId: int64(stack.QuestionId),
-			}
-			err := g.Get(stored)
+		key := datastore.NewKey(ctx, "Stackoverflow", "", int64(stack.QuestionId), nil)
+		err = datastore.RunInTransaction(ctx, func(ctx context.Context) error {
+			stored := &Stackoverflow{}
+			err := datastore.Get(ctx, key, stored)
 			if err == nil {
 				return nil
 			}
 			if err != datastore.ErrNoSuchEntity {
-				ac.Errorf("%s", err.Error())
+				log.Errorf(ctx, "%s", err.Error())
 				return err
 			}
 
@@ -240,14 +243,14 @@ func (a *CollectorApi) PullStackoverflow(ac appengine.Context, tag string) error
 			stored.Owner = stack.Owner
 			stored.CreationDate = (time.Time)(stack.CreationDate)
 			stored.LastActivityDate = (time.Time)(stack.LastActivityDate)
-			_, err = g.Put(stored)
+			_, err = datastore.Put(ctx, key, stored)
 			if err != nil {
 				return err
 			}
 
 			sm := SlackMessage{}
 			sm.Set(stored)
-			_, err = a.PostToSlack(ac, sm)
+			_, err = a.PostToSlack(ctx, sm)
 			if err != nil {
 				return err
 			}
@@ -316,7 +319,7 @@ func (sm *SlackMessage) Set(s *Stackoverflow) {
 	sm.Attachments = []SlackAttachment{sa}
 }
 
-func (a *CollectorApi) PostToSlack(c appengine.Context, message SlackMessage) (resp *http.Response, err error) {
+func (a *CollectorApi) PostToSlack(c context.Context, message SlackMessage) (resp *http.Response, err error) {
 	client := urlfetch.Client(c)
 
 	body, err := json.Marshal(message)

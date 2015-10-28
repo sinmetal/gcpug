@@ -9,11 +9,13 @@ import (
 	"time"
 
 	"github.com/zenazn/goji/web"
+	"golang.org/x/net/context"
 
-	"appengine"
-	"appengine/datastore"
 	"code.google.com/p/go-uuid/uuid"
 	"github.com/mjibson/goon"
+	"google.golang.org/appengine"
+	"google.golang.org/appengine/datastore"
+	"google.golang.org/appengine/log"
 )
 
 type PugEvent struct {
@@ -39,12 +41,12 @@ func SetUpPugEvent(m *web.Mux) {
 }
 
 func (a *PugEventApi) Post(c web.C, w http.ResponseWriter, r *http.Request) {
-	ac := appengine.NewContext(r)
+	ctx := appengine.NewContext(r)
 
 	var e PugEvent
 	err := json.NewDecoder(r.Body).Decode(&e)
 	if err != nil {
-		ac.Infof("request decode error : %s", err.Error())
+		log.Infof(ctx, "request decode error : %s", err.Error())
 		er := ErrorResponse{
 			http.StatusBadRequest,
 			[]string{"invalid request"},
@@ -54,8 +56,9 @@ func (a *PugEventApi) Post(c web.C, w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
+	g := goon.NewGoon(r)
 	e.Id = uuid.New()
-	err = e.Create(ac)
+	err = e.Create(g)
 	if err == ConflictKey {
 		er := ErrorResponse{
 			http.StatusBadRequest,
@@ -68,7 +71,7 @@ func (a *PugEventApi) Post(c web.C, w http.ResponseWriter, r *http.Request) {
 			http.StatusInternalServerError,
 			[]string{err.Error()},
 		}
-		ac.Errorf(fmt.Sprintf("datastore put error : ", err.Error()))
+		log.Errorf(ctx, fmt.Sprintf("datastore put error : ", err.Error()))
 		er.Write(w)
 		return
 	}
@@ -79,12 +82,12 @@ func (a *PugEventApi) Post(c web.C, w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *PugEventApi) Put(c web.C, w http.ResponseWriter, r *http.Request) {
-	ac := appengine.NewContext(r)
+	ctx := appengine.NewContext(r)
 
 	var e PugEvent
 	err := json.NewDecoder(r.Body).Decode(&e)
 	if err != nil {
-		ac.Infof("request decode error : %s", err.Error())
+		log.Infof(ctx, "request decode error : %s", err.Error())
 		er := ErrorResponse{
 			http.StatusBadRequest,
 			[]string{"invalid request"},
@@ -104,7 +107,7 @@ func (a *PugEventApi) Put(c web.C, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = e.Update(ac)
+	err = e.Update(ctx)
 	if err != nil {
 		er := ErrorResponse{
 			http.StatusNotFound,
@@ -120,8 +123,8 @@ func (a *PugEventApi) Put(c web.C, w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *PugEventApi) List(c web.C, w http.ResponseWriter, r *http.Request) {
-	ac := appengine.NewContext(r)
-	g := goon.FromContext(ac)
+	ctx := appengine.NewContext(r)
+	g := goon.FromContext(ctx)
 
 	q := datastore.NewQuery(goon.DefaultKindName(&PugEvent{}))
 	q = q.Order("-StartAt")
@@ -130,7 +133,7 @@ func (a *PugEventApi) List(c web.C, w http.ResponseWriter, r *http.Request) {
 	if eok != "" {
 		k, err := datastore.DecodeKey(eok)
 		if err != nil {
-			ac.Infof("invalid organizationKey : %s", eok)
+			log.Infof(ctx, "invalid organizationKey : %s", eok)
 			er := ErrorResponse{
 				http.StatusBadRequest,
 				[]string{"invalid organizationKey"},
@@ -145,7 +148,7 @@ func (a *PugEventApi) List(c web.C, w http.ResponseWriter, r *http.Request) {
 	if limit != "" {
 		l, err := strconv.Atoi(limit)
 		if err != nil {
-			ac.Infof("invalid limit : %s", limit)
+			log.Infof(ctx, "invalid limit : %s", limit)
 			er := ErrorResponse{
 				http.StatusBadRequest,
 				[]string{"invalid limit"},
@@ -159,7 +162,7 @@ func (a *PugEventApi) List(c web.C, w http.ResponseWriter, r *http.Request) {
 	pes := make([]*PugEvent, 0)
 	_, err := g.GetAll(q, &pes)
 	if err != nil {
-		ac.Errorf(err.Error())
+		log.Errorf(ctx, err.Error())
 		er := ErrorResponse{
 			http.StatusInternalServerError,
 			[]string{"datastore query error"},
@@ -187,12 +190,12 @@ func (pe *PugEvent) Validate4Put() error {
 	return pe.Validate()
 }
 
-func (pe *PugEvent) Get(c appengine.Context) error {
+func (pe *PugEvent) Get(c context.Context) error {
 	g := goon.FromContext(c)
 	return g.Get(pe)
 }
 
-func (pe *PugEvent) Update(c appengine.Context) error {
+func (pe *PugEvent) Update(c context.Context) error {
 	g := goon.FromContext(c)
 	err := g.RunInTransaction(func(g *goon.Goon) error {
 		stored := &PugEvent{
@@ -213,27 +216,26 @@ func (pe *PugEvent) Update(c appengine.Context) error {
 		return nil
 	}, nil)
 	if err != nil {
-		c.Warningf("%v", pe)
+		log.Warningf(c, "%v", pe)
 		return err
 	}
 
 	j, err := json.Marshal(pe)
 	if err != nil {
-		c.Warningf("json marshal error, %s", pe.Id)
+		log.Warningf(c, "json marshal error, %s", pe.Id)
 	}
-	c.Infof("{\"__DS__KIND__PUGEVENT__\":%s}", j)
+	log.Infof(c, "{\"__DS__KIND__PUGEVENT__\":%s}", j)
 	return err
 }
 
-func (pe *PugEvent) Load(c <-chan datastore.Property) error {
-	if err := datastore.LoadStruct(pe, c); err != nil {
+func (pe *PugEvent) Load(ps []datastore.Property) error {
+	if err := datastore.LoadStruct(pe, ps); err != nil {
 		return err
 	}
-
 	return nil
 }
 
-func (pe *PugEvent) Save(c chan<- datastore.Property) error {
+func (pe *PugEvent) Save() ([]datastore.Property, error) {
 	now := time.Now()
 	pe.UpdatedAt = now
 
@@ -241,14 +243,10 @@ func (pe *PugEvent) Save(c chan<- datastore.Property) error {
 		pe.CreatedAt = now
 	}
 
-	if err := datastore.SaveStruct(pe, c); err != nil {
-		return err
-	}
-	return nil
+	return datastore.SaveStruct(pe)
 }
 
-func (pe *PugEvent) Create(c appengine.Context) error {
-	g := goon.FromContext(c)
+func (pe *PugEvent) Create(g *goon.Goon) error {
 	return g.RunInTransaction(func(g *goon.Goon) error {
 		stored := &PugEvent{
 			Id: pe.Id,

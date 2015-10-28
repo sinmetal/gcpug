@@ -11,16 +11,15 @@ import (
 
 	"github.com/zenazn/goji/web"
 
-	"appengine"
-	"appengine/aetest"
 	"github.com/mjibson/goon"
+	"google.golang.org/appengine/aetest"
 )
 
 type PugEventTester struct {
 }
 
-func (t *PugEventTester) MakePugEvent(c appengine.Context, o Organization, n int) (PugEvent, error) {
-	g := goon.FromContext(c)
+func (t *PugEventTester) MakePugEvent(r *http.Request, o Organization, n int) (PugEvent, error) {
+	g := goon.NewGoon(r)
 
 	pe := PugEvent{
 		Id:             fmt.Sprintf("test%d", n),
@@ -29,7 +28,6 @@ func (t *PugEventTester) MakePugEvent(c appengine.Context, o Organization, n int
 		Url:            fmt.Sprintf("http://example%d.com", n),
 		StartAt:        time.Now(),
 	}
-	c.Infof("%v", pe)
 	_, err := g.Put(&pe)
 	return pe, err
 }
@@ -77,9 +75,7 @@ func TestPostPugEvent(t *testing.T) {
 		t.Fatal("fatal new request error : %s", err.Error())
 	}
 
-	c := appengine.NewContext(req)
-
-	g := goon.FromContext(c)
+	g := goon.NewGoon(req)
 
 	o := &Organization{
 		Id: "organizationId",
@@ -264,9 +260,7 @@ func TestPutPugEvent(t *testing.T) {
 		t.Fatal("fatal new request error : %s", err.Error())
 	}
 
-	c := appengine.NewContext(req)
-
-	g := goon.FromContext(c)
+	g := goon.NewGoon(req)
 
 	o := &Organization{
 		Id: "organizationId",
@@ -280,7 +274,7 @@ func TestPutPugEvent(t *testing.T) {
 		Url:            "http://example.com",
 		StartAt:        time.Now(),
 	}
-	err = data.Create(c)
+	err = data.Create(g)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -360,9 +354,7 @@ func TestPugEventSave(t *testing.T) {
 		t.Fatal("fatal new request error : %s", err.Error())
 	}
 
-	c := appengine.NewContext(req)
-
-	g := goon.FromContext(c)
+	g := goon.NewGoon(req)
 
 	o := &Organization{
 		Id: "organizationId",
@@ -419,21 +411,19 @@ func TestListPugEvent(t *testing.T) {
 		t.Fatal("fatal new request error : %s", err.Error())
 	}
 
-	c := appengine.NewContext(req)
-
 	ot := OrganizationTester{}
-	o, err := ot.MakeDefaultOrganization(c)
+	o, err := ot.MakeDefaultOrganization(req)
 	if err != nil {
 		t.Error(err)
 	}
 
 	pet := PugEventTester{}
-	pe1, err := pet.MakePugEvent(c, o, 1)
+	pe1, err := pet.MakePugEvent(req, o, 1)
 	if err != nil {
 		t.Error(err)
 	}
 
-	pe2, err := pet.MakePugEvent(c, o, 2)
+	pe2, err := pet.MakePugEvent(req, o, 2)
 	if err != nil {
 		t.Error(err)
 	}

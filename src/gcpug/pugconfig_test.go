@@ -8,8 +8,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"appengine"
-	"appengine/aetest"
+	"google.golang.org/appengine/aetest"
 
 	"github.com/mjibson/goon"
 )
@@ -28,9 +27,7 @@ func TestPugConfigPost(t *testing.T) {
 		t.Fatal("fatal new request error : %s", err.Error())
 	}
 
-	c := appengine.NewContext(req)
-
-	g := goon.FromContext(c)
+	g := goon.NewGoon(req)
 
 	con := &PugConfig{
 		ClientId:     "hoge-clinet-id",
@@ -97,9 +94,7 @@ func TestPugConfigGet(t *testing.T) {
 		t.Fatal("fatal new request error : %s", err.Error())
 	}
 
-	c := appengine.NewContext(req)
-
-	g := goon.FromContext(c)
+	g := goon.NewGoon(req)
 
 	con := &PugConfig{
 		Id:           pugConfigId,
@@ -113,7 +108,7 @@ func TestPugConfigGet(t *testing.T) {
 	}
 
 	s := &PugConfigService{}
-	pc, err := s.Get(c)
+	pc, err := s.Get(g)
 	if err != nil {
 		t.Error(err)
 	}
