@@ -8,11 +8,12 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/zenazn/goji/web"
 	"golang.org/x/net/context"
 
-	"code.google.com/p/go-uuid/uuid"
+	"github.com/zenazn/goji/web"
+	"github.com/pborman/uuid"
 	"github.com/mjibson/goon"
+
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/log"
