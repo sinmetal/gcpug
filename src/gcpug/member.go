@@ -8,8 +8,9 @@ import (
 	"time"
 
 	"github.com/zenazn/goji/web"
-
+	"github.com/pborman/uuid"
 	"github.com/mjibson/goon"
+
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/log"
@@ -19,7 +20,6 @@ import (
 	"golang.org/x/oauth2/google"
 	gauth "google.golang.org/api/oauth2/v2"
 
-	"code.google.com/p/go-uuid/uuid"
 	plus "google.golang.org/api/plus/v1"
 )
 
