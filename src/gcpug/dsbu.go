@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"fmt"
 
-	"github.com/sinmetal/ds2bq"
+	"github.com/favclip/ds2bq"
 
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/log"
