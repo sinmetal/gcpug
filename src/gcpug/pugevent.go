@@ -10,9 +10,9 @@ import (
 
 	"golang.org/x/net/context"
 
-	"github.com/zenazn/goji/web"
-	"github.com/pborman/uuid"
 	"github.com/mjibson/goon"
+	"github.com/pborman/uuid"
+	"github.com/zenazn/goji/web"
 
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"
@@ -24,7 +24,7 @@ type PugEvent struct {
 	OrganizationId string    `json:"organizationId"`                   // 支部Id
 	Title          string    `json:"title" datastore:",noindex"`       // イベントタイトル
 	Description    string    `json:"description" datastore:",noindex"` // イベント説明
-	Url            string    `json:"url" datastore:",noindex"`         // イベント募集URL
+	Url            string    `json:"url"`                              // イベント募集URL
 	StartAt        time.Time `json:"startAt"`                          // 開催日時
 	CreatedAt      time.Time `json:"createdAt"`                        // 作成日時
 	UpdatedAt      time.Time `json:"updatedAt"`                        // 更新日時
