@@ -3,3 +3,8 @@ cron:
   url: /cron/1/collector
   target: collector
   schedule: every 1 hours
+- description: pull connpass
+  url: /cron/connpass
+  target: connpass
+  schedule: every 3 hours from 09:00 to 21:00
+  timezone: Asia/Tokyo
