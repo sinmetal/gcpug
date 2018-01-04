@@ -19,6 +19,9 @@ handlers:
 - url: /join
   static_files: join.html
   upload: join.html
+- url: /report
+  static_files: report.html
+  upload: report.html
 - url: /template
   static_dir: template
 - url: /css
